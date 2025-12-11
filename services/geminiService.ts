@@ -1,10 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Coordinates, AnalysisResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResult> => {
   try {
+    // Initialize inside the function to avoid crash on module load if API key is missing
+    const apiKey = process.env.API_KEY;
+    
+    if (!apiKey) {
+      console.warn("API Key is missing");
+      return {
+        title: "חסר מפתח API",
+        description: "לא הוגדר מפתח API בהגדרות הפרויקט ב-Vercel. נא להוסיף את המשתנה API_KEY.",
+        ideology: "שגיאת קונפיגורציה"
+      };
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
     const model = 'gemini-2.5-flash';
     
     // In Israeli context:
