@@ -1,6 +1,13 @@
-import { Coordinates, AnalysisResult } from "../types";
+import { Coordinates, AnalysisResult, Answer } from "../types";
 
-export const reportResult = async (coords: Coordinates, analysis: AnalysisResult) => {
+interface AnalyticsData {
+  duration: number;
+  answers: Answer[];
+  userName: string;
+  userEmail: string;
+}
+
+export const reportResult = async (coords: Coordinates, analysis: AnalysisResult, extraData?: AnalyticsData) => {
   // This URL should be your Google Apps Script Web App URL
   const reportingUrl = process.env.REPORTING_URL;
   
@@ -9,14 +16,26 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
     return;
   }
 
+  console.log("Attempting to report results to Google Sheets...");
+  
   try {
+    // Format answers into a compact string like "1:2, 2:-1, 3:0" (QuestionID : Score)
+    const answersString = extraData?.answers
+      ? extraData.answers.map(a => `${a.questionId}:${a.score}`).join(', ')
+      : "";
+
     const payload = {
       timestamp: new Date().toISOString(),
+      userName: extraData?.userName || "Anonymous", // New Field
+      userEmail: extraData?.userEmail || "",        // New Field
       x: coords.x,
       y: coords.y,
       title: analysis.title,
       description: analysis.description ? analysis.description.substring(0, 500) : "",
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
+      duration: extraData?.duration || 0,
+      answers: answersString,
+      screenResolution: `${window.innerWidth}x${window.innerHeight}`
     };
 
     // Google Apps Script Web Apps have strict CORS policies.
@@ -32,8 +51,8 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
       body: JSON.stringify(payload),
     });
     
-    console.log("Result reported securely.");
+    console.log("Result report sent successfully (no-cors mode). Please check your Google Sheet.");
   } catch (error) {
-    console.error("Reporting failed", error);
+    console.error("Reporting failed with error:", error);
   }
 };

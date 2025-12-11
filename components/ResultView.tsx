@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Coordinates, AnalysisResult } from '../types';
+import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
@@ -11,6 +11,11 @@ interface ResultViewProps {
   initialAnalysis?: AnalysisResult | null;
   onAnalysisComplete?: (analysis: AnalysisResult) => void;
   isDarkMode?: boolean;
+  // Analytics and User Data
+  quizDuration?: number;
+  answers?: Answer[];
+  userName?: string;
+  userEmail?: string;
 }
 
 const ResultView: React.FC<ResultViewProps> = ({ 
@@ -18,7 +23,11 @@ const ResultView: React.FC<ResultViewProps> = ({
   onRetake, 
   initialAnalysis = null, 
   onAnalysisComplete,
-  isDarkMode = false
+  isDarkMode = false,
+  quizDuration = 0,
+  answers = [],
+  userName = "Anonymous",
+  userEmail = ""
 }) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
@@ -49,7 +58,12 @@ const ResultView: React.FC<ResultViewProps> = ({
         // Report result to the owner (Google Sheet)
         if (!hasReportedRef.current) {
             hasReportedRef.current = true;
-            reportResult(coordinates, result);
+            reportResult(coordinates, result, {
+              duration: quizDuration,
+              answers: answers,
+              userName: userName,
+              userEmail: userEmail
+            });
         }
       }
     };

@@ -3,11 +3,12 @@ import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
-import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun } from 'lucide-react';
+import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft } from 'lucide-react';
 import { getSavedResult, saveResult, hasSavedResult } from './utils/storage';
 
 enum AppState {
   WELCOME,
+  REGISTRATION,
   QUIZ,
   RESULTS
 }
@@ -17,7 +18,17 @@ const App: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0 });
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Default to Light Mode
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to Dark Mode
+
+  // User Data State
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [validationError, setValidationError] = useState(false);
+
+  // Analytics State
+  const [startTime, setStartTime] = useState<number>(0);
+  const [quizDuration, setQuizDuration] = useState<number>(0);
+  const [lastAnswers, setLastAnswers] = useState<Answer[]>([]);
 
   useEffect(() => {
     setHasHistory(hasSavedResult());
@@ -42,6 +53,11 @@ const App: React.FC = () => {
 
   const calculateResults = (answers: Answer[]) => {
     try {
+      // Calculate duration
+      const durationSec = (Date.now() - startTime) / 1000;
+      setQuizDuration(durationSec);
+      setLastAnswers(answers);
+
       let econScore = 0;
       let socialScore = 0;
       
@@ -99,7 +115,16 @@ const App: React.FC = () => {
     }
   };
 
-  const handleStart = () => {
+  const handleGoToRegistration = () => {
+    setAppState(AppState.REGISTRATION);
+  };
+
+  const handleStartQuiz = () => {
+    if (!userName.trim()) {
+      setValidationError(true);
+      return;
+    }
+    setStartTime(Date.now());
     setAppState(AppState.QUIZ);
   };
 
@@ -107,6 +132,11 @@ const App: React.FC = () => {
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
     setCurrentAnalysis(null);
+    setQuizDuration(0);
+    setLastAnswers([]);
+    setUserName("");
+    setUserEmail("");
+    setValidationError(false);
   };
 
   return (
@@ -175,7 +205,7 @@ const App: React.FC = () => {
                 
                 <div className="space-y-4 max-w-md mx-auto">
                     <button 
-                    onClick={handleStart}
+                    onClick={handleGoToRegistration}
                     className="w-full px-8 py-5 bg-yellow-400 text-slate-950 text-xl font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 flex items-center justify-center gap-3 shadow-lg"
                     >
                     <span>התחל במבחן</span>
@@ -207,6 +237,56 @@ const App: React.FC = () => {
             </div>
             )}
 
+            {appState === AppState.REGISTRATION && (
+            <div className="max-w-md mx-auto px-4 animate-fadeIn">
+                <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 text-center">קצת פרטים ומתחילים</h2>
+                    
+                    <div className="space-y-5">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">שם (חובה)</label>
+                            <div className="relative">
+                                <User className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="text"
+                                    value={userName}
+                                    onChange={(e) => {
+                                        setUserName(e.target.value);
+                                        if(e.target.value) setValidationError(false);
+                                    }}
+                                    className={`w-full pr-10 pl-4 py-3 rounded-xl border ${validationError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 dark:border-slate-700 focus:ring-yellow-400/50'} bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 transition-all`}
+                                    placeholder="ישראל ישראלי"
+                                />
+                            </div>
+                            {validationError && <p className="text-red-500 text-xs mt-1 mr-1">אנא מלא את השם כדי להמשיך</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">דואר אלקטרוני (רשות)</label>
+                            <div className="relative">
+                                <Mail className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="email"
+                                    value={userEmail}
+                                    onChange={(e) => setUserEmail(e.target.value)}
+                                    className="w-full pr-10 pl-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all"
+                                    placeholder="your@email.com"
+                                />
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={handleStartQuiz}
+                            className="w-full mt-2 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <span>המשך למבחן</span>
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+            )}
+
             {appState === AppState.QUIZ && (
             <Quiz onComplete={calculateResults} />
             )}
@@ -218,6 +298,11 @@ const App: React.FC = () => {
                 initialAnalysis={currentAnalysis}
                 onAnalysisComplete={handleAnalysisComplete}
                 isDarkMode={isDarkMode}
+                // Pass analytics props including user data
+                quizDuration={quizDuration}
+                answers={lastAnswers}
+                userName={userName}
+                userEmail={userEmail}
             />
             )}
         </div>
