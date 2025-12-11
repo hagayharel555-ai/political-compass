@@ -1,0 +1,5 @@
+{
+  "name": "המצפן הפוליטי (Political Compass Hebrew)",
+  "description": "An interactive political compass test in Hebrew that analyzes your political stance using the Gemini API.",
+  "requestFramePermissions": []
+}
