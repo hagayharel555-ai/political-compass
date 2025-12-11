@@ -38,6 +38,33 @@ const App: React.FC = () => {
        // Optional: Uncomment to respect system preference initially
        // setIsDarkMode(true);
     }
+
+    // Check for shared results in URL
+    const params = new URLSearchParams(window.location.search);
+    const xParam = params.get('x');
+    const yParam = params.get('y');
+
+    if (xParam && yParam) {
+      const x = parseFloat(xParam);
+      const y = parseFloat(yParam);
+
+      if (!isNaN(x) && !isNaN(y)) {
+        setCoordinates({ x, y });
+        
+        const titleParam = params.get('title');
+        const descParam = params.get('desc');
+        
+        if (titleParam && descParam) {
+          setCurrentAnalysis({
+            title: decodeURIComponent(titleParam),
+            description: decodeURIComponent(descParam),
+            ideology: '' // Optional field
+          });
+        }
+        
+        setAppState(AppState.RESULTS);
+      }
+    }
   }, []);
 
   // Handle Theme Toggle
@@ -91,6 +118,9 @@ const App: React.FC = () => {
       setCoordinates({ x: safeX, y: safeY });
       setCurrentAnalysis(null);
       setAppState(AppState.RESULTS);
+      
+      // Clean URL if user takes a new test after viewing a shared link
+      window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
       console.error("Error calculating results:", error);
       setAppState(AppState.WELCOME);
@@ -129,6 +159,9 @@ const App: React.FC = () => {
   };
 
   const handleRetake = () => {
+    // Clear URL params
+    window.history.pushState({}, document.title, window.location.pathname);
+    
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
     setCurrentAnalysis(null);
@@ -146,7 +179,10 @@ const App: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
-            onClick={() => setAppState(AppState.WELCOME)}
+            onClick={() => {
+              window.history.pushState({}, document.title, window.location.pathname);
+              setAppState(AppState.WELCOME);
+            }}
           >
             <div className="bg-yellow-400 text-slate-950 p-1.5 rounded-lg shadow-[0_0_15px_rgba(250,204,21,0.3)] group-hover:scale-110 transition-transform">
                 <Compass className="w-6 h-6" strokeWidth={2.5} />

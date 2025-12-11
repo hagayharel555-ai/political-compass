@@ -3,7 +3,7 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check } from 'lucide-react';
 
 interface ResultViewProps {
   coordinates: Coordinates;
@@ -31,6 +31,7 @@ const ResultView: React.FC<ResultViewProps> = ({
 }) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
+  const [copied, setCopied] = useState(false);
   
   // Use a ref to ensure we only report once per mounting/calculation
   const hasReportedRef = useRef(false);
@@ -70,6 +71,42 @@ const ResultView: React.FC<ResultViewProps> = ({
     fetchAnalysis();
     return () => { isMounted = false; };
   }, [coordinates, initialAnalysis]);
+
+  const handleShare = async () => {
+    if (!analysis) return;
+
+    // Construct URL with parameters
+    const params = new URLSearchParams();
+    params.set('x', coordinates.x.toString());
+    params.set('y', coordinates.y.toString());
+    params.set('title', encodeURIComponent(analysis.title));
+    params.set('desc', encodeURIComponent(analysis.description));
+    
+    const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    const shareData = {
+      title: 'המצפן הפוליטי - התוצאה שלי',
+      text: `יצא לי "${analysis.title}" במצפן הפוליטי! בדקו את התוצאה שלי:`,
+      url: shareUrl
+    };
+
+    // Use Web Share API if available (Mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback to Clipboard API
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 py-8 animate-fadeIn">
@@ -145,7 +182,6 @@ const ResultView: React.FC<ResultViewProps> = ({
                     </p>
                 </div>
 
-                {/* Ideology Section Removed as requested */}
                 </div>
             ) : (
                 <div className="text-red-500 dark:text-red-400 flex flex-col items-center justify-center h-full gap-2">
@@ -157,7 +193,26 @@ const ResultView: React.FC<ResultViewProps> = ({
         </div>
       </div>
 
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-col md:flex-row justify-center gap-4">
+        {analysis && (
+            <button 
+                onClick={handleShare}
+                className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3"
+            >
+                {copied ? (
+                     <>
+                        <Check className="w-5 h-5 text-green-500" />
+                        <span>הקישור הועתק!</span>
+                     </>
+                ) : (
+                    <>
+                        <Share2 className="w-5 h-5" />
+                        <span>שתף תוצאה</span>
+                    </>
+                )}
+            </button>
+        )}
+
         <button 
           onClick={onRetake}
           className="group relative px-8 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md"
