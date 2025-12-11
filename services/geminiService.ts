@@ -1,18 +1,50 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Coordinates, AnalysisResult } from "../types";
 
+// Fallback logic for when API key is missing or calls fail
+const getFallbackAnalysis = (coords: Coordinates): AnalysisResult => {
+  const { x, y } = coords;
+  let title = "";
+  let ideology = "";
+  let description = "";
+
+  // Logic:
+  // X: -10 (Left/Socialist) to +10 (Right/Capitalist)
+  // Y: -10 (Libertarian/Dove) to +10 (Authoritarian/Hawk)
+  
+  if (x < 0 && y < 0) {
+    title = "שמאל-ליברלי (שמאל ציוני)";
+    ideology = "העבודה / מרצ / הדמוקרטים";
+    description = "אתה תומך במדיניות רווחה כלכלית וצמצום פערים, לצד עמדות ליברליות מובהקות בנושאי דת ומדינה, זכויות אדם ופתרון מדיני. אתה מאמין בשוויון אזרחי מלא ובחשיבות מערכת המשפט.";
+  } else if (x < 0 && y >= 0) {
+    title = "שמאל חברתי-שמרני";
+    ideology = "שמאל מסורתי / מפלגות חברתיות";
+    description = "אתה תומך במעורבות ממשלתית עמוקה בכלכלה ובביטחון סוציאלי, אך מחזיק בעמדות שמרניות יותר בנושאי ביטחון, לאום או מסורת. אתה מעדיף יציבות חברתית על פני ליברליזם רדיקלי.";
+  } else if (x >= 0 && y < 0) {
+    title = "ימין-ליברלי (ליברליזם קלאסי)";
+    ideology = "יש עתיד / תקווה חדשה / גישה ליברלית בליכוד";
+    description = "אתה מאמין בשוק חופשי, הפחתת מיסים ויוזמה פרטית, אך מדגיש גם את חשיבותן של זכויות הפרט, שלטון החוק והפרדת רשויות. אתה נוטה לפרגמטיות מדינית.";
+  } else { // x >= 0 && y >= 0
+    title = "ימין-שמרני (המחנה הלאומי)";
+    ideology = "הליכוד / הציונות הדתית / ש\"ס";
+    description = "אתה דוגל בערכים לאומיים ומסורתיים, עמדה ביטחונית תקיפה וחיזוק המשילות. מבחינה כלכלית אתה נוטה לשוק חופשי, אך רואה חשיבות בשמירה על האופי היהודי של המדינה.";
+  }
+
+  return {
+    title,
+    description: description + "\n\n(הערה: תוצאה זו נוצרה באופן אוטומטי מכיוון שלא זוהה חיבור פעיל לשירות הבינה המלאכותית).",
+    ideology
+  };
+};
+
 export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResult> => {
   try {
-    // Initialize inside the function to avoid crash on module load if API key is missing
     const apiKey = process.env.API_KEY;
     
+    // Immediate fallback if no key is configured
     if (!apiKey) {
-      console.warn("API Key is missing");
-      return {
-        title: "חסר מפתח API",
-        description: "לא הוגדר מפתח API בהגדרות הפרויקט ב-Vercel. נא להוסיף את המשתנה API_KEY.",
-        ideology: "שגיאת קונפיגורציה"
-      };
+      console.warn("API Key is missing, using fallback analysis.");
+      return getFallbackAnalysis(coords);
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -63,11 +95,8 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
 
     return JSON.parse(text) as AnalysisResult;
   } catch (error) {
-    console.error("Error analyzing results:", error);
-    return {
-      title: "שגיאה בניתוח",
-      description: "לא הצלחנו לנתח את התוצאות כרגע. אנא נסה שוב מאוחר יותר.",
-      ideology: "לא ידוע"
-    };
+    console.error("Error analyzing results with AI:", error);
+    // If AI fails (quota, network, invalid key), return fallback
+    return getFallbackAnalysis(coords);
   }
 };
