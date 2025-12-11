@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Question, Answer } from '../types';
 import { QUESTIONS } from '../constants';
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react';
@@ -13,9 +13,12 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
   const [animating, setAnimating] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
-  const currentQuestion = QUESTIONS[currentIndex];
+  // Ensure currentIndex is valid
+  const currentQuestion = QUESTIONS[currentIndex] || QUESTIONS[0];
 
   const handleAnswer = (score: number) => {
+    if (animating) return; // Prevent double clicks
+
     const newAnswer: Answer = { questionId: currentQuestion.id, score };
     
     // Create a copy of answers to modify
@@ -32,13 +35,21 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         setCurrentIndex(prev => prev + 1);
         setAnimating(false);
       } else {
-        onComplete(updatedAnswers);
+        // Last question - call onComplete
+        // Note: We don't set animating(false) here because the component should unmount.
+        // If it doesn't unmount due to parent error, we might be stuck hidden.
+        try {
+          onComplete(updatedAnswers);
+        } catch (e) {
+          console.error("Error completing quiz:", e);
+          setAnimating(false); // Restore UI if error occurs
+        }
       }
     }, 250);
   };
 
   const handleBack = () => {
-    if (currentIndex > 0) {
+    if (currentIndex > 0 && !animating) {
       setDirection('backward');
       setAnimating(true);
       setTimeout(() => {
@@ -48,7 +59,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
     }
   };
 
-  const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
+  // Safe progress calculation
+  const progress = Math.min(100, Math.round(((currentIndex + 1) / QUESTIONS.length) * 100));
 
   return (
     <div className="max-w-3xl mx-auto w-full px-4">
@@ -60,7 +72,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
             <span className="text-xl font-bold text-yellow-400">שאלה {currentIndex + 1} <span className="text-slate-600 text-base font-normal">/ {QUESTIONS.length}</span></span>
           </div>
           <div className="bg-slate-800 px-3 py-1 rounded-full shadow-sm border border-slate-700 text-slate-300">
-             {Math.round(progress)}%
+             {progress}%
           </div>
         </div>
         <div className="h-4 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
@@ -91,7 +103,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <button 
             onClick={() => handleAnswer(2)}
-            className="group relative py-4 px-2 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-green-500"
+            disabled={animating}
+            className="group relative py-4 px-2 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <span className="text-lg relative z-10">מסכים בהחלט</span>
             <Check className="w-6 h-6 relative z-10" />
@@ -99,28 +112,32 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
           
           <button 
             onClick={() => handleAnswer(1)}
-            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-green-600 text-green-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
+            disabled={animating}
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-green-600 text-green-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             מסכים
           </button>
           
           <button 
             onClick={() => handleAnswer(0)}
-            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-slate-600 text-slate-400 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
+            disabled={animating}
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-slate-600 text-slate-400 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             ניטרלי
           </button>
           
           <button 
             onClick={() => handleAnswer(-1)}
-            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-red-600 text-red-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
+            disabled={animating}
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-red-600 text-red-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             לא מסכים
           </button>
           
           <button 
             onClick={() => handleAnswer(-2)}
-            className="group relative py-4 px-2 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-red-500"
+            disabled={animating}
+            className="group relative py-4 px-2 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <span className="text-lg relative z-10">מתנגד בהחלט</span>
              <span className="text-2xl leading-none relative z-10">×</span>
@@ -131,9 +148,9 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         <div className="mt-8 flex justify-between items-center px-2">
             <button
                 onClick={handleBack}
-                disabled={currentIndex === 0}
+                disabled={currentIndex === 0 || animating}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                    currentIndex === 0 
+                    currentIndex === 0 || animating
                     ? 'text-slate-700 cursor-not-allowed' 
                     : 'text-slate-400 hover:text-yellow-400 hover:bg-slate-800'
                 }`}

@@ -23,31 +23,47 @@ const App: React.FC = () => {
   }, []);
 
   const calculateResults = (answers: Answer[]) => {
-    let econScore = 0;
-    let socialScore = 0;
-    
-    const econQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.ECONOMIC).length;
-    const socialQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.SOCIAL).length;
+    try {
+      let econScore = 0;
+      let socialScore = 0;
+      
+      const econQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.ECONOMIC).length || 1; // Avoid division by zero
+      const socialQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.SOCIAL).length || 1;
 
-    answers.forEach(ans => {
-      const question = QUESTIONS.find(q => q.id === ans.questionId);
-      if (!question) return;
+      answers.forEach(ans => {
+        const question = QUESTIONS.find(q => q.id === ans.questionId);
+        if (!question) return;
 
-      const impact = ans.score * question.direction;
+        // Ensure score and direction are numbers
+        const score = Number(ans.score);
+        const direction = Number(question.direction);
+        
+        if (isNaN(score) || isNaN(direction)) return;
 
-      if (question.axis === Axis.ECONOMIC) {
-        econScore += impact;
-      } else {
-        socialScore += impact;
-      }
-    });
+        const impact = score * direction;
 
-    const normalizedX = (econScore / (2 * econQuestionsCount)) * 10;
-    const normalizedY = (socialScore / (2 * socialQuestionsCount)) * 10;
+        if (question.axis === Axis.ECONOMIC) {
+          econScore += impact;
+        } else {
+          socialScore += impact;
+        }
+      });
 
-    setCoordinates({ x: normalizedX, y: normalizedY });
-    setCurrentAnalysis(null);
-    setAppState(AppState.RESULTS);
+      const normalizedX = (econScore / (2 * econQuestionsCount)) * 10;
+      const normalizedY = (socialScore / (2 * socialQuestionsCount)) * 10;
+
+      // Clamp values between -10 and 10 just in case
+      const safeX = Math.max(-10, Math.min(10, normalizedX || 0));
+      const safeY = Math.max(-10, Math.min(10, normalizedY || 0));
+
+      setCoordinates({ x: safeX, y: safeY });
+      setCurrentAnalysis(null);
+      setAppState(AppState.RESULTS);
+    } catch (error) {
+      console.error("Error calculating results:", error);
+      // Fallback to avoid getting stuck
+      setAppState(AppState.WELCOME);
+    }
   };
 
   const handleAnalysisComplete = (analysis: AnalysisResult) => {
