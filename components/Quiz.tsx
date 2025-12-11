@@ -8,13 +8,27 @@ interface QuizProps {
 }
 
 const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [animating, setAnimating] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
+  useEffect(() => {
+    // Fisher-Yates shuffle algorithm to randomize questions
+    const shuffled = [...QUESTIONS];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setQuestions(shuffled);
+  }, []);
+
+  // Wait for shuffle to complete
+  if (questions.length === 0) return null;
+
   // Ensure currentIndex is valid
-  const currentQuestion = QUESTIONS[currentIndex] || QUESTIONS[0];
+  const currentQuestion = questions[currentIndex];
 
   const handleAnswer = (score: number) => {
     if (animating) return; // Prevent double clicks
@@ -31,7 +45,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
     setAnimating(true);
     
     setTimeout(() => {
-      if (currentIndex < QUESTIONS.length - 1) {
+      if (currentIndex < questions.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setAnimating(false);
       } else {
@@ -58,7 +72,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
   };
 
   // Safe progress calculation
-  const progress = Math.min(100, Math.round(((currentIndex + 1) / QUESTIONS.length) * 100));
+  const progress = Math.min(100, Math.round(((currentIndex + 1) / questions.length) * 100));
 
   return (
     <div className="max-w-3xl mx-auto w-full px-4">
@@ -67,7 +81,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         <div className="flex justify-between items-end text-sm text-slate-500 dark:text-slate-400 mb-3 font-medium">
           <div className="flex flex-col">
             <span className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">התקדמות</span>
-            <span className="text-xl font-bold text-yellow-500 dark:text-yellow-400">שאלה {currentIndex + 1} <span className="text-slate-500 dark:text-slate-600 text-base font-normal">/ {QUESTIONS.length}</span></span>
+            <span className="text-xl font-bold text-yellow-500 dark:text-yellow-400">שאלה {currentIndex + 1} <span className="text-slate-500 dark:text-slate-600 text-base font-normal">/ {questions.length}</span></span>
           </div>
           <div className="bg-white dark:bg-slate-800 px-3 py-1 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-colors">
              {progress}%
