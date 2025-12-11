@@ -54,18 +54,18 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
     <div className="max-w-3xl mx-auto w-full px-4">
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="flex justify-between items-end text-sm text-slate-600 mb-3 font-medium">
+        <div className="flex justify-between items-end text-sm text-slate-400 mb-3 font-medium">
           <div className="flex flex-col">
-            <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">התקדמות</span>
-            <span className="text-xl font-bold text-indigo-900">שאלה {currentIndex + 1} <span className="text-slate-400 text-base font-normal">/ {QUESTIONS.length}</span></span>
+            <span className="text-xs text-slate-500 uppercase tracking-wider mb-1">התקדמות</span>
+            <span className="text-xl font-bold text-yellow-400">שאלה {currentIndex + 1} <span className="text-slate-600 text-base font-normal">/ {QUESTIONS.length}</span></span>
           </div>
-          <div className="bg-white px-3 py-1 rounded-full shadow-sm border border-slate-100">
+          <div className="bg-slate-800 px-3 py-1 rounded-full shadow-sm border border-slate-700 text-slate-300">
              {Math.round(progress)}%
           </div>
         </div>
-        <div className="h-4 w-full bg-slate-200/50 rounded-full overflow-hidden backdrop-blur-sm border border-white/50">
+        <div className="h-4 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
           <div 
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+            className="h-full bg-yellow-400 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -77,12 +77,12 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
             ? (direction === 'forward' ? 'opacity-0 -translate-x-10' : 'opacity-0 translate-x-10') 
             : 'opacity-100 translate-x-0'
         }`}>
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 md:p-12 mb-8 border border-white/60 min-h-[280px] flex flex-col justify-center items-center text-center relative overflow-hidden group hover:shadow-2xl transition-shadow duration-300">
+        <div className="bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 md:p-12 mb-8 border border-slate-800 min-h-[280px] flex flex-col justify-center items-center text-center relative overflow-hidden group">
            {/* Subtle background decoration */}
-           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10 opacity-50 transition-transform group-hover:scale-110"></div>
-           <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-50 rounded-tr-full -ml-8 -mb-8 opacity-50 transition-transform group-hover:scale-110"></div>
+           <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+           <div className="absolute bottom-0 left-0 w-24 h-24 bg-slate-700/10 rounded-tr-full -ml-8 -mb-8 transition-transform group-hover:scale-110"></div>
            
-           <h2 className="text-2xl md:text-3xl font-bold text-slate-800 leading-relaxed z-10">
+           <h2 className="text-2xl md:text-3xl font-bold text-slate-100 leading-relaxed z-10">
             {currentQuestion.text}
           </h2>
         </div>
@@ -91,39 +91,37 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <button 
             onClick={() => handleAnswer(2)}
-            className="group relative py-4 px-2 rounded-2xl bg-gradient-to-b from-green-600 to-green-700 text-white font-bold hover:from-green-500 hover:to-green-600 transition-all shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden"
+            className="group relative py-4 px-2 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-green-500"
           >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span className="text-lg relative z-10">מסכים בהחלט</span>
             <Check className="w-6 h-6 relative z-10" />
           </button>
           
           <button 
             onClick={() => handleAnswer(1)}
-            className="py-4 px-2 rounded-2xl bg-white border-2 border-green-500 text-green-600 font-bold hover:bg-green-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95"
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-green-600 text-green-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
           >
             מסכים
           </button>
           
           <button 
             onClick={() => handleAnswer(0)}
-            className="py-4 px-2 rounded-2xl bg-white border-2 border-slate-300 text-slate-500 font-bold hover:bg-slate-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95"
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-slate-600 text-slate-400 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
           >
             ניטרלי
           </button>
           
           <button 
             onClick={() => handleAnswer(-1)}
-            className="py-4 px-2 rounded-2xl bg-white border-2 border-red-400 text-red-500 font-bold hover:bg-red-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95"
+            className="py-4 px-2 rounded-2xl bg-slate-800 border-2 border-red-600 text-red-500 font-bold hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95"
           >
             לא מסכים
           </button>
           
           <button 
             onClick={() => handleAnswer(-2)}
-            className="group relative py-4 px-2 rounded-2xl bg-gradient-to-b from-red-600 to-red-700 text-white font-bold hover:from-red-500 hover:to-red-600 transition-all shadow-lg hover:shadow-red-500/30 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden"
+            className="group relative py-4 px-2 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition-all shadow-lg shadow-black/20 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-red-500"
           >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span className="text-lg relative z-10">מתנגד בהחלט</span>
              <span className="text-2xl leading-none relative z-10">×</span>
           </button>
@@ -136,20 +134,13 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
                 disabled={currentIndex === 0}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
                     currentIndex === 0 
-                    ? 'text-slate-300 cursor-not-allowed' 
-                    : 'text-slate-500 hover:text-indigo-600 hover:bg-white/50'
+                    ? 'text-slate-700 cursor-not-allowed' 
+                    : 'text-slate-400 hover:text-yellow-400 hover:bg-slate-800'
                 }`}
             >
-                <ChevronRight className="w-5 h-5 rotate-180" /> {/* RTL flip icon manually or use rotate because dir=rtl mirrors layout but sometimes icons need check */}
-                {/* Actually with dir=rtl, ChevronRight points Left visually which is "Back" in RTL? No, Usually Right arrow is Forward, Left arrow is Back. In RTL, Left is Forward (Next) and Right is Backward (Prev). Let's stick to text for clarity or standard icons. */}
-                {/* In RTL: ArrowRight points Left. ArrowLeft points Right. */}
-                {/* Let's just use Text + Icon logic. */}
+                <ChevronRight className="w-5 h-5 rotate-180" /> 
                 <span>חזור לשאלה הקודמת</span>
             </button>
-            
-            <div className="text-xs text-slate-400">
-                {/* Optional info */}
-            </div>
         </div>
 
       </div>

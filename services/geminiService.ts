@@ -1,8 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { Coordinates, AnalysisResult } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResult> => {
   try {
@@ -36,6 +35,15 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            description: { type: Type.STRING },
+            ideology: { type: Type.STRING },
+          },
+          required: ["title", "description", "ideology"],
+        },
       }
     });
 
