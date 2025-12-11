@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Coordinates, AnalysisResult } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
+import { reportResult } from '../services/reportingService';
 import { RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
 
 interface ResultViewProps {
@@ -21,8 +22,12 @@ const ResultView: React.FC<ResultViewProps> = ({
 }) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
+  
+  // Use a ref to ensure we only report once per mounting/calculation
+  const hasReportedRef = useRef(false);
 
   useEffect(() => {
+    // If we loaded from history (initialAnalysis exists), we don't report again.
     if (initialAnalysis) {
       setAnalysis(initialAnalysis);
       setLoading(false);
@@ -33,11 +38,18 @@ const ResultView: React.FC<ResultViewProps> = ({
     const fetchAnalysis = async () => {
       setLoading(true);
       const result = await analyzeResults(coordinates);
+      
       if (isMounted) {
         setAnalysis(result);
         setLoading(false);
         if (onAnalysisComplete) {
           onAnalysisComplete(result);
+        }
+        
+        // Report result to the owner (Google Sheet)
+        if (!hasReportedRef.current) {
+            hasReportedRef.current = true;
+            reportResult(coordinates, result);
         }
       }
     };
