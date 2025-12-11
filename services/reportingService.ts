@@ -4,35 +4,36 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
   // This URL should be your Google Apps Script Web App URL
   const reportingUrl = process.env.REPORTING_URL;
   
-  if (!reportingUrl) return;
+  if (!reportingUrl) {
+    console.warn("Reporting URL is not configured");
+    return;
+  }
 
   try {
-    // We use payload construction to ensure clean data
     const payload = {
       timestamp: new Date().toISOString(),
       x: coords.x,
       y: coords.y,
       title: analysis.title,
-      // We truncate description to avoid huge cells in sheets if necessary
-      description: analysis.description.substring(0, 500),
-      // Basic analytics (optional)
+      description: analysis.description ? analysis.description.substring(0, 500) : "",
       userAgent: navigator.userAgent
     };
 
-    // 'no-cors' mode is essential for posting to Google Scripts from a browser
-    // It means we can write data, but we won't get a readable response confirmation (which is fine for logging)
+    // Google Apps Script Web Apps have strict CORS policies.
+    // We use 'no-cors' which allows the request to be sent, but we cannot read the response.
+    // CRITICAL: We MUST use 'text/plain' as Content-Type for the body to be sent correctly in no-cors mode.
+    // The Google Script blindly parses the postData.contents, so this works perfectly.
     await fetch(reportingUrl, {
       method: 'POST',
       mode: 'no-cors',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain',
       },
       body: JSON.stringify(payload),
     });
     
     console.log("Result reported securely.");
   } catch (error) {
-    // Fail silently so the user experience isn't affected
     console.error("Reporting failed", error);
   }
 };
