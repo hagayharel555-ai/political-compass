@@ -201,7 +201,15 @@ const App: React.FC = () => {
             </div>
             <div>
                 <h1 className="text-xl font-black tracking-tight leading-none text-slate-900 dark:text-slate-100">המצפן הפוליטי</h1>
-                <span className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider">פרוייקט דעת</span>
+                <a 
+                  href="https://www.youtube.com/@ProjectDaat" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  פרוייקט דעת
+                </a>
             </div>
           </div>
           
@@ -216,7 +224,7 @@ const App: React.FC = () => {
              </button>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
-                <span>פותח ע"י חגי הראל</span>
+                <span>פותח ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">חגי הראל</a></span>
                 <span className="w-1 h-1 bg-slate-400 dark:bg-slate-600 rounded-full"></span>
                 <span>מופעל ע"י Gemini AI</span>
             </div>
@@ -274,11 +282,11 @@ const App: React.FC = () => {
                 <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-slate-500">
                      <div className="flex items-center gap-2">
                         <HeartHandshake className="w-4 h-4 text-yellow-500" />
-                        <span>בחסות <span className="font-bold text-slate-700 dark:text-slate-300">פרוייקט דעת</span></span>
+                        <span>בחסות <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">פרוייקט דעת</a></span>
                      </div>
                      <span className="hidden md:inline text-slate-300 dark:text-slate-700">•</span>
                      <div>
-                        פיתוח ועיצוב: <span className="font-bold text-slate-700 dark:text-slate-300">חגי הראל</span>
+                        פיתוח ועיצוב: <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
                      </div>
                 </div>
                 </div>
@@ -359,9 +367,9 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-8 mt-auto transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-slate-500 font-medium mb-2">© {new Date().getFullYear()} המצפן הפוליטי | פרוייקט דעת</p>
+          <p className="text-slate-500 font-medium mb-2">© {new Date().getFullYear()} המצפן הפוליטי | <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">פרוייקט דעת</a></p>
           <p className="text-slate-600 dark:text-slate-600 text-sm">
-            פותח באהבה ע"י <span className="font-bold text-yellow-600 dark:text-yellow-500">חגי הראל</span>
+            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
           </p>
         </div>
       </footer>
