@@ -95,7 +95,7 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
 
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+            margin={{ top: 25, right: 25, bottom: 25, left: 25 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis 
@@ -122,8 +122,8 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
             {/* Labels */}
             <ReferenceLine y={10} stroke="none" label={{ position: 'insideTop', value: 'סמכותני', fill: textColor, fontSize: 12, fontWeight: 'bold', dy: -15 }} />
             <ReferenceLine y={-10} stroke="none" label={{ position: 'insideBottom', value: 'ליברלי', fill: textColor, fontSize: 12, fontWeight: 'bold', dy: 15 }} />
-            <ReferenceLine x={-10} stroke="none" label={{ position: 'insideLeft', value: 'שמאל', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: -90, dx: -15 }} />
-            <ReferenceLine x={10} stroke="none" label={{ position: 'insideRight', value: 'ימין', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: 90, dx: 15 }} />
+            <ReferenceLine x={-10} stroke="none" label={{ position: 'insideLeft', value: 'שמאל', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: -90, dx: -10 }} />
+            <ReferenceLine x={10} stroke="none" label={{ position: 'insideRight', value: 'ימין', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: 90, dx: 10 }} />
 
             {/* User Position */}
             <Scatter name="Your Position" data={data} zIndex={20}>
