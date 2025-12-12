@@ -3,7 +3,7 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass, Youtube } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ResultViewProps {
@@ -349,9 +349,19 @@ const ResultView: React.FC<ResultViewProps> = ({
                  )}
              </div>
 
-             {/* Footer */}
-             <div className="mt-8 pt-4 text-center text-slate-400 text-sm font-medium">
-                 political-compass.project-daat.com
+             {/* Footer - Updated Link and YouTube handles */}
+             <div className="mt-8 pt-6 border-t border-slate-100 w-full flex flex-col items-center gap-2">
+                 <div className="text-slate-900 font-bold text-xl tracking-wide" dir="ltr">politicalil.vercel.app</div>
+                 <div className="flex items-center gap-6 text-slate-500 font-medium" dir="ltr">
+                    <div className="flex items-center gap-2">
+                        <Youtube className="w-5 h-5 text-[#FF0000]" fill="currentColor" /> 
+                        <span>@ProjectDaat</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Youtube className="w-5 h-5 text-[#FF0000]" fill="currentColor" />
+                        <span>@HagaiDaat</span>
+                    </div>
+                 </div>
              </div>
          </div>
       </div>
