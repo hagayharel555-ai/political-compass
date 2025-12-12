@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell, LabelList } from 'recharts';
 import { Coordinates } from '../types';
-import { Users, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface CompassChartProps {
   coordinates: Coordinates;
@@ -48,16 +48,19 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
     return closest;
   }, [coordinates]);
 
-  // Theme colors
-  const gridColor = isDarkMode ? "#334155" : "#cbd5e1"; // Slate 700 vs Slate 300
-  const axisColor = isDarkMode ? "#94a3b8" : "#64748b"; // Slate 400 vs Slate 500
-  const textColor = isDarkMode ? "#e2e8f0" : "#334155"; // Slate 200 vs Slate 700
+  // Classic Political Compass Colors (Muted/Pastel versions for background)
+  const bgColors = {
+    tl: "#fca5a5", // Red-300 (Auth Left)
+    tr: "#93c5fd", // Blue-300 (Auth Right)
+    bl: "#86efac", // Green-300 (Lib Left)
+    br: "#fde047", // Yellow-300 (Lib Right)
+  };
 
   return (
-    <div className="w-full relative bg-slate-100 dark:bg-slate-900 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 p-4 transition-colors duration-300 flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-6 items-center">
       
       {/* Controls Header */}
-      <div className="flex justify-between items-center px-2">
+      <div className="w-full flex justify-between items-center px-2">
         <button 
           onClick={() => setShowParties(!showParties)}
           className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full transition-all border ${
@@ -83,79 +86,86 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
         )}
       </div>
 
-      {/* Chart Container - Fixed Aspect Ratio for Mobile */}
-      <div className="w-full aspect-square relative max-h-[500px] mx-auto">
-        {/* Background Colors for Quadrants */}
-        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none opacity-20 dark:opacity-15">
-          <div className="bg-red-500/30 rounded-tl-lg border-r border-b border-slate-300 dark:border-slate-800"></div>   {/* Top Left: Auth Left */}
-          <div className="bg-blue-500/30 rounded-tr-lg border-l border-b border-slate-300 dark:border-slate-800"></div>  {/* Top Right: Auth Right */}
-          <div className="bg-green-500/30 rounded-bl-lg border-r border-t border-slate-300 dark:border-slate-800"></div> {/* Bottom Left: Lib Left */}
-          <div className="bg-purple-500/30 rounded-br-lg border-l border-t border-slate-300 dark:border-slate-800"></div>{/* Bottom Right: Lib Right */}
+      {/* Chart Wrapper with External Labels */}
+      <div className="relative w-full max-w-[450px] mx-auto pt-6 pb-6 px-8">
+        
+        {/* External Labels */}
+        <div className="absolute top-0 left-0 right-0 text-center font-black text-slate-700 dark:text-slate-300 text-sm md:text-base tracking-wide">
+          סמכותני (Authoritarian)
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 text-center font-black text-slate-700 dark:text-slate-300 text-sm md:text-base tracking-wide">
+          ליברלי (Libertarian)
+        </div>
+        <div className="absolute top-0 bottom-0 left-0 flex items-center justify-center w-8">
+             <span className="-rotate-90 text-center font-black text-slate-700 dark:text-slate-300 text-sm md:text-base whitespace-nowrap tracking-wide">שמאל (Left)</span>
+        </div>
+        <div className="absolute top-0 bottom-0 right-0 flex items-center justify-center w-8">
+             <span className="rotate-90 text-center font-black text-slate-700 dark:text-slate-300 text-sm md:text-base whitespace-nowrap tracking-wide">ימין (Right)</span>
         </div>
 
-        <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart
-            margin={{ top: 25, right: 25, bottom: 25, left: 25 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="Economic" 
-              domain={[-10, 10]} 
-              tickCount={5}
-              hide
-            />
-            <YAxis 
-              type="number" 
-              dataKey="y" 
-              name="Social" 
-              domain={[-10, 10]} 
-              tickCount={5}
-              hide
-            />
+        {/* The Chart Box */}
+        <div className="aspect-square relative border-[3px] border-slate-800 dark:border-slate-400 shadow-2xl overflow-hidden bg-white">
             
-            {/* Axis Lines */}
-            <ReferenceLine y={0} stroke={axisColor} strokeWidth={2} />
-            <ReferenceLine x={0} stroke={axisColor} strokeWidth={2} />
+            {/* Colored Backgrounds */}
+            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 opacity-90">
+                <div style={{ backgroundColor: bgColors.tl }}></div>
+                <div style={{ backgroundColor: bgColors.tr }}></div>
+                <div style={{ backgroundColor: bgColors.bl }}></div>
+                <div style={{ backgroundColor: bgColors.br }}></div>
+            </div>
 
-            {/* Labels */}
-            <ReferenceLine y={10} stroke="none" label={{ position: 'insideTop', value: 'סמכותני', fill: textColor, fontSize: 12, fontWeight: 'bold', dy: -15 }} />
-            <ReferenceLine y={-10} stroke="none" label={{ position: 'insideBottom', value: 'ליברלי', fill: textColor, fontSize: 12, fontWeight: 'bold', dy: 15 }} />
-            <ReferenceLine x={-10} stroke="none" label={{ position: 'insideLeft', value: 'שמאל', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: -90, dx: -10 }} />
-            <ReferenceLine x={10} stroke="none" label={{ position: 'insideRight', value: 'ימין', fill: textColor, fontSize: 12, fontWeight: 'bold', angle: 90, dx: 10 }} />
-
-            {/* User Position */}
-            <Scatter name="Your Position" data={data} zIndex={20}>
-              <Cell fill="#facc15" stroke="#000" strokeWidth={2} />
-            </Scatter>
-
-            {/* Parties Overlay */}
-            {showParties && (
-              <Scatter name="Parties" data={PARTIES} zIndex={10}>
-                {PARTIES.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.6} stroke={entry.color} />
-                ))}
-                <LabelList 
-                  dataKey="name" 
-                  position="top" 
-                  style={{ 
-                    fill: isDarkMode ? '#e2e8f0' : '#1e293b', 
-                    fontSize: '10px', 
-                    fontWeight: 'bold',
-                    textShadow: isDarkMode ? '0px 1px 2px black' : '0px 0px 2px white'
-                  }} 
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart
+                margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              >
+                {/* Grid Lines - Semi-transparent white to create the "cells" look */}
+                <CartesianGrid 
+                    stroke="rgba(255,255,255,0.4)" 
+                    strokeWidth={1} 
                 />
-              </Scatter>
-            )}
+                
+                {/* Axes setup with ticks to create the grid cells properly */}
+                <XAxis type="number" dataKey="x" domain={[-10, 10]} tickCount={21} hide />
+                <YAxis type="number" dataKey="y" domain={[-10, 10]} tickCount={21} hide />
+                
+                {/* Central Axes - Black and Thick */}
+                <ReferenceLine y={0} stroke="#111827" strokeWidth={2} />
+                <ReferenceLine x={0} stroke="#111827" strokeWidth={2} />
 
-            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
-          </ScatterChart>
-        </ResponsiveContainer>
+                {/* User Position - Bold Red Dot */}
+                <Scatter name="Your Position" data={data} zIndex={20}>
+                  <Cell fill="#ef4444" stroke="#ffffff" strokeWidth={2} r={7} />
+                </Scatter>
+
+                {/* Parties */}
+                {showParties && (
+                  <Scatter name="Parties" data={PARTIES} zIndex={10}>
+                    {PARTIES.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={1} r={4} />
+                    ))}
+                    <LabelList 
+                        dataKey="name" 
+                        position="top" 
+                        offset={5}
+                        style={{ 
+                            fill: '#000000', 
+                            fontSize: '10px', 
+                            fontWeight: '800',
+                            textShadow: '0px 0px 4px rgba(255,255,255,0.8)',
+                            pointerEvents: 'none'
+                        }} 
+                    />
+                  </Scatter>
+                )}
+                
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
+              </ScatterChart>
+            </ResponsiveContainer>
+        </div>
         
         {/* Point Annotation */}
-        <div className="absolute bottom-0 left-0 p-2 text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-          X: {coordinates.x.toFixed(1)}, Y: {coordinates.y.toFixed(1)}
+        <div className="absolute bottom-1 right-2 text-[9px] text-slate-400 dark:text-slate-500 font-mono">
+           ({coordinates.x.toFixed(1)}, {coordinates.y.toFixed(1)})
         </div>
       </div>
     </div>
