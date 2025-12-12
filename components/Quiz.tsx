@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Question, Answer } from '../types';
 import { QUESTIONS } from '../constants';
-import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, X, Minus } from 'lucide-react';
 
 interface QuizProps {
   onComplete: (answers: Answer[]) => void;
@@ -75,7 +75,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
   const progress = Math.min(100, Math.round(((currentIndex + 1) / questions.length) * 100));
 
   return (
-    <div className="max-w-3xl mx-auto w-full px-4">
+    <div className="max-w-4xl mx-auto w-full px-4">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-end text-sm text-slate-500 dark:text-slate-400 mb-3 font-medium">
@@ -101,7 +101,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
             ? (direction === 'forward' ? 'opacity-0 -translate-x-10' : 'opacity-0 translate-x-10') 
             : 'opacity-100 translate-x-0'
         }`}>
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 md:p-12 mb-8 border border-slate-200 dark:border-slate-800 min-h-[280px] flex flex-col justify-center items-center text-center relative overflow-hidden group transition-colors duration-300">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 md:p-12 mb-8 border border-slate-200 dark:border-slate-800 min-h-[200px] md:min-h-[240px] flex flex-col justify-center items-center text-center relative overflow-hidden group transition-colors duration-300">
            {/* Subtle background decoration */}
            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 dark:bg-yellow-500/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
            <div className="absolute bottom-0 left-0 w-24 h-24 bg-slate-200/50 dark:bg-slate-700/10 rounded-tr-full -ml-8 -mb-8 transition-transform group-hover:scale-110"></div>
@@ -112,59 +112,78 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
         </div>
 
         {/* Answer Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
+          
+          {/* Strongly Agree (+2) */}
           <button 
             onClick={() => handleAnswer(2)}
             disabled={animating}
-            className="group relative py-4 px-2 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-500 transition-all shadow-lg shadow-black/5 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white hover:from-green-400 hover:to-green-500 transition-all shadow-lg hover:shadow-green-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <span className="text-lg relative z-10">מסכים בהחלט</span>
-            <Check className="w-6 h-6 relative z-10" />
+            <div className="flex md:flex-col items-center gap-2 md:gap-3">
+               <Check className="w-6 h-6 md:w-10 md:h-10 stroke-[3]" />
+               <span className="text-lg font-bold leading-tight">מסכים<br className="hidden md:block"/> בהחלט</span>
+            </div>
           </button>
           
+          {/* Agree (+1) */}
           <button 
             onClick={() => handleAnswer(1)}
             disabled={animating}
-            className="py-4 px-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-green-600 text-green-600 dark:text-green-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="group h-16 md:h-40 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 border-2 border-green-200 dark:border-green-800 hover:border-green-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            מסכים
+             <div className="flex md:flex-col items-center gap-2">
+                <Check className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="font-bold text-base md:text-lg">מסכים</span>
+             </div>
           </button>
           
+          {/* Neutral (0) */}
           <button 
             onClick={() => handleAnswer(0)}
             disabled={animating}
-            className="py-4 px-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="group h-14 md:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            ניטרלי
+             <div className="flex md:flex-col items-center gap-2">
+                <Minus className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="font-medium text-base md:text-lg">ניטרלי</span>
+             </div>
           </button>
           
+          {/* Disagree (-1) */}
           <button 
             onClick={() => handleAnswer(-1)}
             disabled={animating}
-            className="py-4 px-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-red-600 text-red-600 dark:text-red-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-md hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="group h-16 md:h-40 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 hover:border-red-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            לא מסכים
+             <div className="flex md:flex-col items-center gap-2">
+                <X className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="font-bold text-base md:text-lg">לא מסכים</span>
+             </div>
           </button>
           
+          {/* Strongly Disagree (-2) */}
           <button 
             onClick={() => handleAnswer(-2)}
             disabled={animating}
-            className="group relative py-4 px-2 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition-all shadow-lg shadow-black/5 hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-1 overflow-hidden border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 transition-all shadow-lg hover:shadow-red-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <span className="text-lg relative z-10">מתנגד בהחלט</span>
-             <span className="text-2xl leading-none relative z-10">×</span>
+             <div className="flex md:flex-col items-center gap-2 md:gap-3">
+                <X className="w-6 h-6 md:w-10 md:h-10 stroke-[3]" />
+                <span className="text-lg font-bold leading-tight">מתנגד<br className="hidden md:block"/> בהחלט</span>
+             </div>
           </button>
         </div>
 
         {/* Navigation Controls */}
-        <div className="mt-8 flex justify-between items-center px-2">
+        <div className="mt-8 flex justify-center md:justify-start px-2">
             <button
                 onClick={handleBack}
                 disabled={currentIndex === 0 || animating}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                     currentIndex === 0 || animating
-                    ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed' 
-                    : 'text-slate-500 hover:text-yellow-500 dark:text-slate-400 dark:hover:text-yellow-400 hover:bg-white dark:hover:bg-slate-800'
+                    ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-50' 
+                    : 'text-slate-500 hover:text-yellow-600 dark:text-slate-400 dark:hover:text-yellow-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
             >
                 <ChevronRight className="w-5 h-5 rotate-180" /> 
