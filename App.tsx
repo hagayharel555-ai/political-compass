@@ -120,7 +120,11 @@ const App: React.FC = () => {
       setAppState(AppState.RESULTS);
       
       // Clean URL if user takes a new test after viewing a shared link
-      window.history.replaceState({}, document.title, window.location.pathname);
+      try {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (historyError) {
+        console.warn("Could not update history state (likely due to secure environment restrictions):", historyError);
+      }
     } catch (error) {
       console.error("Error calculating results:", error);
       setAppState(AppState.WELCOME);
@@ -160,7 +164,11 @@ const App: React.FC = () => {
 
   const handleRetake = () => {
     // Clear URL params
-    window.history.pushState({}, document.title, window.location.pathname);
+    try {
+      window.history.pushState({}, document.title, window.location.pathname);
+    } catch (historyError) {
+      console.warn("Could not push history state:", historyError);
+    }
     
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
@@ -180,7 +188,11 @@ const App: React.FC = () => {
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
             onClick={() => {
-              window.history.pushState({}, document.title, window.location.pathname);
+              try {
+                window.history.pushState({}, document.title, window.location.pathname);
+              } catch (e) {
+                console.warn("History push failed:", e);
+              }
               setAppState(AppState.WELCOME);
             }}
           >
