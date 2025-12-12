@@ -3,7 +3,7 @@ import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
-import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft } from 'lucide-react';
+import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility } from 'lucide-react';
 import { getSavedResult, saveResult, hasSavedResult } from './utils/storage';
 
 enum AppState {
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to Dark Mode
+  const [isAccessible, setIsAccessible] = useState(false); // Accessibility Mode
 
   // User Data State
   const [userName, setUserName] = useState("");
@@ -77,6 +78,7 @@ const App: React.FC = () => {
   }, [isDarkMode]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+  const toggleAccessibility = () => setIsAccessible(!isAccessible);
 
   const calculateResults = (answers: Answer[]) => {
     try {
@@ -181,7 +183,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300" dir="rtl">
+    <div 
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isAccessible ? 'accessible-mode' : ''}`} 
+      dir="rtl"
+    >
       {/* Header */}
       <header className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 glass transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -195,6 +200,9 @@ const App: React.FC = () => {
               }
               setAppState(AppState.WELCOME);
             }}
+            tabIndex={0}
+            aria-label="חזרה לדף הבית"
+            onKeyDown={(e) => e.key === 'Enter' && setAppState(AppState.WELCOME)}
           >
             <div className="bg-yellow-400 text-slate-950 p-1.5 rounded-lg shadow-[0_0_15px_rgba(250,204,21,0.3)] group-hover:scale-110 transition-transform">
                 <Compass className="w-6 h-6" strokeWidth={2.5} />
@@ -214,11 +222,25 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
+             {/* Accessibility Toggle */}
+             <button
+               onClick={toggleAccessibility}
+               className={`p-2 rounded-full transition-colors ${
+                 isAccessible 
+                   ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-400' 
+                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+               }`}
+               aria-label={isAccessible ? "כבה מצב נגישות" : "הפעל מצב נגישות"}
+               title={isAccessible ? "כבה מצב נגישות" : "הפעל מצב נגישות"}
+             >
+               <Accessibility className="w-5 h-5" />
+             </button>
+
              {/* Theme Toggle */}
              <button 
               onClick={toggleTheme}
               className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Toggle Theme"
+              aria-label={isDarkMode ? "עבור למצב יום" : "עבור למצב לילה"}
              >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
              </button>
@@ -234,9 +256,13 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center py-8 relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute top-10 left-10 w-96 h-96 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full filter blur-3xl opacity-30 dark:opacity-20 animate-blob"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400/20 dark:bg-slate-700/20 rounded-full filter blur-3xl opacity-30 dark:opacity-20 animate-blob animation-delay-2000"></div>
+        {/* Decorative background elements - Hidden in accessible mode */}
+        {!isAccessible && (
+          <>
+            <div className="absolute top-10 left-10 w-96 h-96 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full filter blur-3xl opacity-30 dark:opacity-20 animate-blob"></div>
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400/20 dark:bg-slate-700/20 rounded-full filter blur-3xl opacity-30 dark:opacity-20 animate-blob animation-delay-2000"></div>
+          </>
+        )}
 
         <div className="z-10 w-full">
             {appState === AppState.WELCOME && (
@@ -250,7 +276,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
-                    גלה את <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-200 dark:to-yellow-500">הזהות הפוליטית</span> שלך
+                    גלה את <span className={isAccessible ? "text-yellow-700 dark:text-yellow-300 underline" : "text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-200 dark:to-yellow-500"}>הזהות הפוליטית</span> שלך
                 </h2>
                 
                 <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-lg mx-auto">
@@ -263,6 +289,7 @@ const App: React.FC = () => {
                     <button 
                     onClick={handleGoToRegistration}
                     className="w-full px-8 py-5 bg-yellow-400 text-slate-950 text-xl font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 flex items-center justify-center gap-3 shadow-lg"
+                    aria-label="התחל במבחן"
                     >
                     <span>התחל במבחן</span>
                     <Compass className="w-6 h-6" />
@@ -300,10 +327,11 @@ const App: React.FC = () => {
                     
                     <div className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">שם (חובה)</label>
+                            <label htmlFor="userName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">שם (חובה)</label>
                             <div className="relative">
                                 <User className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
                                 <input 
+                                    id="userName"
                                     type="text"
                                     value={userName}
                                     onChange={(e) => {
@@ -312,16 +340,19 @@ const App: React.FC = () => {
                                     }}
                                     className={`w-full pr-10 pl-4 py-3 rounded-xl border ${validationError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 dark:border-slate-700 focus:ring-yellow-400/50'} bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 transition-all`}
                                     placeholder="ישראל ישראלי"
+                                    aria-invalid={validationError}
+                                    aria-describedby={validationError ? "name-error" : undefined}
                                 />
                             </div>
-                            {validationError && <p className="text-red-500 text-xs mt-1 mr-1">אנא מלא את השם כדי להמשיך</p>}
+                            {validationError && <p id="name-error" className="text-red-500 text-xs mt-1 mr-1" role="alert">אנא מלא את השם כדי להמשיך</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">דואר אלקטרוני (רשות)</label>
+                            <label htmlFor="userEmail" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">דואר אלקטרוני (רשות)</label>
                             <div className="relative">
                                 <Mail className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
                                 <input 
+                                    id="userEmail"
                                     type="email"
                                     value={userEmail}
                                     onChange={(e) => setUserEmail(e.target.value)}
@@ -354,6 +385,7 @@ const App: React.FC = () => {
                 initialAnalysis={currentAnalysis}
                 onAnalysisComplete={handleAnalysisComplete}
                 isDarkMode={isDarkMode}
+                isAccessible={isAccessible} // Pass prop
                 // Pass analytics props including user data
                 quizDuration={quizDuration}
                 answers={lastAnswers}

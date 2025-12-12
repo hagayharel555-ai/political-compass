@@ -3,7 +3,7 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ResultViewProps {
@@ -12,6 +12,7 @@ interface ResultViewProps {
   initialAnalysis?: AnalysisResult | null;
   onAnalysisComplete?: (analysis: AnalysisResult) => void;
   isDarkMode?: boolean;
+  isAccessible?: boolean;
   // Analytics and User Data
   quizDuration?: number;
   answers?: Answer[];
@@ -25,6 +26,7 @@ const ResultView: React.FC<ResultViewProps> = ({
   initialAnalysis = null, 
   onAnalysisComplete,
   isDarkMode = false,
+  isAccessible = false,
   quizDuration = 0,
   answers = [],
   userName = "Anonymous",
@@ -35,7 +37,11 @@ const ResultView: React.FC<ResultViewProps> = ({
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   
+  // Ref for the visible result view (optional use)
   const resultRef = useRef<HTMLDivElement>(null);
+  
+  // Ref for the dedicated export view (hidden from user)
+  const exportRef = useRef<HTMLDivElement>(null);
   
   // Use a ref to ensure we only report once per mounting/calculation
   const hasReportedRef = useRef(false);
@@ -113,14 +119,19 @@ const ResultView: React.FC<ResultViewProps> = ({
   };
 
   const handleDownload = async () => {
-    if (!resultRef.current) return;
+    // Target the specific export layout
+    if (!exportRef.current) return;
     setDownloading(true);
 
     try {
-      const canvas = await html2canvas(resultRef.current, {
-        backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', // slate-950 or slate-50
-        scale: 2, // Better quality
+      // Create canvas from the hidden export ref
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: '#ffffff', // Always white for clean export
+        scale: 2, // High resolution
         useCORS: true,
+        logging: false,
+        width: 800, // Fixed width for consistency
+        windowWidth: 1000 // Ensure layout doesn't break
       });
 
       const image = canvas.toDataURL("image/png");
@@ -142,11 +153,11 @@ const ResultView: React.FC<ResultViewProps> = ({
         <p className="text-lg text-slate-600 dark:text-slate-400">ניתוח מעמיק המבוסס על תשובותיך</p>
       </div>
 
-      <div ref={resultRef} className={`grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 p-4 rounded-3xl ${downloading ? (isDarkMode ? 'bg-slate-950' : 'bg-slate-50') : ''}`}>
+      <div ref={resultRef} className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 p-4 rounded-3xl">
         {/* Chart Section */}
         <div className="lg:col-span-7 flex flex-col">
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
-                <CompassChart coordinates={coordinates} isDarkMode={isDarkMode} />
+                <CompassChart coordinates={coordinates} isDarkMode={isDarkMode} isAccessible={isAccessible} />
                 
                 <div className="mt-6 grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 flex flex-col items-center">
@@ -170,10 +181,13 @@ const ResultView: React.FC<ResultViewProps> = ({
         {/* Analysis Section */}
         <div className="lg:col-span-5">
             <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 flex flex-col relative overflow-hidden group transition-colors duration-300">
-            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"></div>
-            
-            {/* Background Blob for effect */}
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full mix-blend-multiply filter blur-2xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+            {/* Hiding decorative elements in accessible mode */}
+            {!isAccessible && (
+                <>
+                <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"></div>
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full mix-blend-multiply filter blur-2xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                </>
+            )}
 
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-yellow-500 dark:text-yellow-400 border border-slate-200 dark:border-slate-700">
@@ -183,12 +197,14 @@ const ResultView: React.FC<ResultViewProps> = ({
             </div>
 
             {loading ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-6">
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-6" role="status" aria-label="מעבד נתונים">
                     <div className="relative">
                         <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-800 border-t-yellow-400 rounded-full animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <Sparkles className="w-6 h-6 text-yellow-500/50 animate-pulse" />
-                        </div>
+                        {!isAccessible && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Sparkles className="w-6 h-6 text-yellow-500/50 animate-pulse" />
+                            </div>
+                        )}
                     </div>
                     <div className="text-center">
                         <p className="text-lg font-medium text-slate-700 dark:text-slate-300">מעבד את הנתונים...</p>
@@ -211,7 +227,7 @@ const ResultView: React.FC<ResultViewProps> = ({
 
                 </div>
             ) : (
-                <div className="text-red-500 dark:text-red-400 flex flex-col items-center justify-center h-full gap-2">
+                <div className="text-red-500 dark:text-red-400 flex flex-col items-center justify-center h-full gap-2" role="alert">
                     <AlertCircle className="w-10 h-10" />
                     <p>שגיאה בטעינת הנתונים</p>
                 </div>
@@ -225,7 +241,8 @@ const ResultView: React.FC<ResultViewProps> = ({
             <>
                 <button 
                     onClick={handleShare}
-                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3"
+                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3 focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                    aria-label="שתף תוצאה"
                 >
                     {copied ? (
                         <>
@@ -243,7 +260,8 @@ const ResultView: React.FC<ResultViewProps> = ({
                 <button 
                     onClick={handleDownload}
                     disabled={downloading}
-                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3 disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                    aria-label="הורד תמונה"
                 >
                     <Download className={`w-5 h-5 ${downloading ? 'animate-bounce' : ''}`} />
                     <span>{downloading ? 'מוריד...' : 'הורד תמונה'}</span>
@@ -253,7 +271,8 @@ const ResultView: React.FC<ResultViewProps> = ({
 
         <button 
           onClick={onRetake}
-          className="group relative px-8 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md"
+          className="group relative px-8 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md focus:outline-none focus:ring-4 focus:ring-slate-900 dark:focus:ring-white"
+          aria-label="התחל מבחן חדש"
         >
           <div className="flex items-center gap-3 relative z-10">
             <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
@@ -261,6 +280,82 @@ const ResultView: React.FC<ResultViewProps> = ({
           </div>
         </button>
       </div>
+
+      {/* Hidden Export View - Clean Layout for Image Generation */}
+      <div 
+        ref={exportRef} 
+        style={{ 
+            position: 'absolute', 
+            left: '-9999px', 
+            width: '800px', 
+            padding: '40px',
+            backgroundColor: '#ffffff',
+            direction: 'rtl',
+            fontFamily: 'Rubik, sans-serif'
+        }}
+        className="flex flex-col items-center"
+      >
+         <div className="w-full border-4 border-slate-900 rounded-3xl p-8 bg-slate-50 relative overflow-hidden">
+             {/* Decorative Accent */}
+             <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400 rounded-bl-full z-0"></div>
+             
+             {/* Header */}
+             <div className="relative z-10 flex items-center justify-between mb-8 pb-6 border-b-2 border-slate-200">
+                 <div className="flex items-center gap-3">
+                     <div className="bg-yellow-400 p-3 rounded-xl border-2 border-slate-900">
+                         <Compass className="w-8 h-8 text-slate-900" />
+                     </div>
+                     <div>
+                         <h1 className="text-3xl font-black text-slate-900 leading-none">המצפן הפוליטי</h1>
+                         <span className="text-yellow-600 font-bold tracking-wider">פרוייקט דעת</span>
+                     </div>
+                 </div>
+                 <div className="text-left">
+                     <span className="block text-sm text-slate-500 font-medium">הופק בתאריך</span>
+                     <span className="block font-bold text-slate-900">{new Date().toLocaleDateString('he-IL')}</span>
+                 </div>
+             </div>
+
+             {/* Content Layout */}
+             <div className="flex flex-col items-center gap-8">
+                 {/* Chart - Scaled Up */}
+                 <div className="w-[500px] h-[550px]">
+                     <CompassChart 
+                        coordinates={coordinates} 
+                        isDarkMode={false} // Force Light Mode
+                        isAccessible={false} // Force Standard Mode
+                        hideControls={true} // Hide UI controls
+                     />
+                 </div>
+
+                 {/* Results */}
+                 {analysis && (
+                     <div className="w-full bg-white rounded-2xl p-6 border-2 border-slate-200 text-center shadow-sm">
+                         <h2 className="text-4xl font-black text-slate-900 mb-2">{analysis.title}</h2>
+                         <p className="text-xl text-slate-700 leading-relaxed px-8">
+                             {analysis.description}
+                         </p>
+                         <div className="flex justify-center gap-6 mt-6 pt-6 border-t border-slate-100">
+                             <div className="px-4 py-2 bg-slate-100 rounded-lg">
+                                 <span className="text-sm text-slate-500 font-bold block">ציר כלכלי (X)</span>
+                                 <span className="text-lg font-black text-slate-900" dir="ltr">{coordinates.x.toFixed(1)}</span>
+                             </div>
+                             <div className="px-4 py-2 bg-slate-100 rounded-lg">
+                                 <span className="text-sm text-slate-500 font-bold block">ציר חברתי (Y)</span>
+                                 <span className="text-lg font-black text-slate-900" dir="ltr">{coordinates.y.toFixed(1)}</span>
+                             </div>
+                         </div>
+                     </div>
+                 )}
+             </div>
+
+             {/* Footer */}
+             <div className="mt-8 pt-4 text-center text-slate-400 text-sm font-medium">
+                 political-compass.project-daat.com
+             </div>
+         </div>
+      </div>
+
     </div>
   );
 };

@@ -75,9 +75,9 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
   const progress = Math.min(100, Math.round(((currentIndex + 1) / questions.length) * 100));
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4">
+    <div className="max-w-4xl mx-auto w-full px-4" role="main" aria-label="מבחן המצפן הפוליטי">
       {/* Progress Bar */}
-      <div className="mb-8">
+      <div className="mb-8" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="התקדמות במבחן">
         <div className="flex justify-between items-end text-sm text-slate-500 dark:text-slate-400 mb-3 font-medium">
           <div className="flex flex-col">
             <span className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">התקדמות</span>
@@ -106,19 +106,20 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 dark:bg-yellow-500/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
            <div className="absolute bottom-0 left-0 w-24 h-24 bg-slate-200/50 dark:bg-slate-700/10 rounded-tr-full -ml-8 -mb-8 transition-transform group-hover:scale-110"></div>
            
-           <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 leading-relaxed z-10 transition-colors">
+           <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 leading-relaxed z-10 transition-colors" role="heading" aria-level={2}>
             {currentQuestion.text}
           </h2>
         </div>
 
         {/* Answer Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full" role="group" aria-label="אפשרויות תשובה">
           
           {/* Strongly Agree (+2) */}
           <button 
             onClick={() => handleAnswer(2)}
             disabled={animating}
-            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white hover:from-green-400 hover:to-green-500 transition-all shadow-lg hover:shadow-green-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            aria-label="מסכים בהחלט"
+            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white hover:from-green-400 hover:to-green-500 transition-all shadow-lg hover:shadow-green-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-green-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:ring-4 focus:ring-green-400 focus:outline-none"
           >
             <div className="flex md:flex-col items-center gap-2 md:gap-3">
                <Check className="w-6 h-6 md:w-10 md:h-10 stroke-[3]" />
@@ -130,7 +131,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
           <button 
             onClick={() => handleAnswer(1)}
             disabled={animating}
-            className="group h-16 md:h-40 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 border-2 border-green-200 dark:border-green-800 hover:border-green-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            aria-label="מסכים"
+            className="group h-16 md:h-40 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 border-2 border-green-200 dark:border-green-800 hover:border-green-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:ring-4 focus:ring-green-300 focus:outline-none"
           >
              <div className="flex md:flex-col items-center gap-2">
                 <Check className="w-5 h-5 md:w-6 md:h-6" />
@@ -142,7 +144,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
           <button 
             onClick={() => handleAnswer(0)}
             disabled={animating}
-            className="group h-14 md:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            aria-label="ניטרלי"
+            className="group h-14 md:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:ring-4 focus:ring-slate-300 focus:outline-none"
           >
              <div className="flex md:flex-col items-center gap-2">
                 <Minus className="w-5 h-5 md:w-6 md:h-6" />
@@ -154,7 +157,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
           <button 
             onClick={() => handleAnswer(-1)}
             disabled={animating}
-            className="group h-16 md:h-40 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 hover:border-red-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            aria-label="לא מסכים"
+            className="group h-16 md:h-40 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 hover:border-red-300 transition-all shadow-sm hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:ring-4 focus:ring-red-300 focus:outline-none"
           >
              <div className="flex md:flex-col items-center gap-2">
                 <X className="w-5 h-5 md:w-6 md:h-6" />
@@ -166,7 +170,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
           <button 
             onClick={() => handleAnswer(-2)}
             disabled={animating}
-            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 transition-all shadow-lg hover:shadow-red-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            aria-label="מתנגד בהחלט"
+            className="group relative h-20 md:h-40 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 transition-all shadow-lg hover:shadow-red-500/25 hover:-translate-y-1 active:scale-95 flex md:flex-col items-center justify-between md:justify-center px-6 md:px-2 gap-2 overflow-hidden border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:ring-4 focus:ring-red-400 focus:outline-none"
           >
              <div className="flex md:flex-col items-center gap-2 md:gap-3">
                 <X className="w-6 h-6 md:w-10 md:h-10 stroke-[3]" />
@@ -180,7 +185,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
             <button
                 onClick={handleBack}
                 disabled={currentIndex === 0 || animating}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                aria-label="חזור לשאלה הקודמת"
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all focus:outline-none focus:ring-4 focus:ring-slate-400 ${
                     currentIndex === 0 || animating
                     ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-50' 
                     : 'text-slate-500 hover:text-yellow-600 dark:text-slate-400 dark:hover:text-yellow-400 hover:bg-slate-100 dark:hover:bg-slate-800'

@@ -59,6 +59,52 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #facc15; 
       }
+
+      /* Accessibility Mode Overrides */
+      .accessible-mode {
+        --tw-bg-opacity: 1 !important;
+      }
+      
+      .accessible-mode * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        text-shadow: none !important;
+      }
+
+      .accessible-mode .glass, 
+      .accessible-mode [class*="bg-white/"],
+      .accessible-mode [class*="bg-slate-900/"] {
+        background-color: var(--accessible-bg, #ffffff) !important;
+        border: 2px solid currentColor !important;
+      }
+
+      .dark .accessible-mode .glass, 
+      .dark .accessible-mode [class*="bg-slate-900/"] {
+        background-color: #020617 !important; /* slate-950 */
+        border-color: #ffffff !important;
+      }
+      
+      .accessible-mode body {
+        font-size: 110%;
+      }
+
+      .accessible-mode h1, 
+      .accessible-mode h2, 
+      .accessible-mode h3, 
+      .accessible-mode button {
+        letter-spacing: 0.05em;
+      }
+
+      /* High contrast focus ring for keyboard navigation */
+      .accessible-mode *:focus-visible {
+        outline: 4px solid #facc15 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 6px #000 !important;
+      }
+      
+      .dark .accessible-mode *:focus-visible {
+        box-shadow: 0 0 0 6px #fff !important;
+      }
     </style>
   <script type="importmap">
 {
