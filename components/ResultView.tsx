@@ -3,7 +3,8 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle, Share2, Check } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface ResultViewProps {
   coordinates: Coordinates;
@@ -32,6 +33,9 @@ const ResultView: React.FC<ResultViewProps> = ({
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  
+  const resultRef = useRef<HTMLDivElement>(null);
   
   // Use a ref to ensure we only report once per mounting/calculation
   const hasReportedRef = useRef(false);
@@ -108,6 +112,29 @@ const ResultView: React.FC<ResultViewProps> = ({
     }
   };
 
+  const handleDownload = async () => {
+    if (!resultRef.current) return;
+    setDownloading(true);
+
+    try {
+      const canvas = await html2canvas(resultRef.current, {
+        backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', // slate-950 or slate-50
+        scale: 2, // Better quality
+        useCORS: true,
+      });
+
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `political-compass-result-${Date.now()}.png`;
+      link.click();
+    } catch (err) {
+      console.error("Failed to download image:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto w-full px-4 py-8 animate-fadeIn">
       <div className="text-center mb-12">
@@ -115,7 +142,7 @@ const ResultView: React.FC<ResultViewProps> = ({
         <p className="text-lg text-slate-600 dark:text-slate-400">ניתוח מעמיק המבוסס על תשובותיך</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+      <div ref={resultRef} className={`grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 p-4 rounded-3xl ${downloading ? (isDarkMode ? 'bg-slate-950' : 'bg-slate-50') : ''}`}>
         {/* Chart Section */}
         <div className="lg:col-span-7 flex flex-col">
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
@@ -195,22 +222,33 @@ const ResultView: React.FC<ResultViewProps> = ({
 
       <div className="flex flex-col md:flex-row justify-center gap-4">
         {analysis && (
-            <button 
-                onClick={handleShare}
-                className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3"
-            >
-                {copied ? (
-                     <>
-                        <Check className="w-5 h-5 text-green-500" />
-                        <span>הקישור הועתק!</span>
-                     </>
-                ) : (
-                    <>
-                        <Share2 className="w-5 h-5" />
-                        <span>שתף תוצאה</span>
-                    </>
-                )}
-            </button>
+            <>
+                <button 
+                    onClick={handleShare}
+                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3"
+                >
+                    {copied ? (
+                        <>
+                            <Check className="w-5 h-5 text-green-500" />
+                            <span>הקישור הועתק!</span>
+                        </>
+                    ) : (
+                        <>
+                            <Share2 className="w-5 h-5" />
+                            <span>שתף תוצאה</span>
+                        </>
+                    )}
+                </button>
+                
+                <button 
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    className="group relative px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg overflow-hidden shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                    <Download className={`w-5 h-5 ${downloading ? 'animate-bounce' : ''}`} />
+                    <span>{downloading ? 'מוריד...' : 'הורד תמונה'}</span>
+                </button>
+            </>
         )}
 
         <button 

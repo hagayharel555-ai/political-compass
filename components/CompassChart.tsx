@@ -20,6 +20,7 @@ const PARTIES = [
   { name: 'ש״ס', x: -3, y: 6, color: '#000000' }, // Left/Welfare Econ, Conservative Social
   { name: 'ישראל ביתנו', x: 7, y: 3, color: '#0c4a6e' }, // Far Right Econ, Hawk Security (Secular)
   { name: 'רע״מ', x: -4, y: -2, color: '#166534' }, // Left Econ, Conservative internal but allied Left politically
+  { name: 'זהות', x: 9, y: 1.5, color: '#14b8a6' }, // Far Right Econ, Mixed Social (Libertarian/Nationalist)
 ];
 
 const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = false }) => {
@@ -82,7 +83,8 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
         )}
       </div>
 
-      <div className="h-[360px] w-full relative">
+      {/* Chart Container - Fixed Aspect Ratio for Mobile */}
+      <div className="w-full aspect-square relative max-h-[500px] mx-auto">
         {/* Background Colors for Quadrants */}
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none opacity-20 dark:opacity-15">
           <div className="bg-red-500/30 rounded-tl-lg border-r border-b border-slate-300 dark:border-slate-800"></div>   {/* Top Left: Auth Left */}
