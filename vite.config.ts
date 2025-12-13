@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, (process as any).cwd(), '');
   
   // The URL generated from the Google Apps Script deployment
-  const REPORTING_URL = "https://script.google.com/macros/s/AKfycbwfin0gD43LDtWEootai2bClAWq9dBRwiX0Hou0ixJfufdcJ0Rwhr22BhC0HiqD-IyA/exec";
+  const REPORTING_URL = "https://script.google.com/macros/s/AKfycbw6w7yflyr-23z4JHDbit3pRAdqRRpgi2wNV4IVGeCgLDBsjlc4LRXo9Pd_OV13Dsui/exec";
 
   return {
     plugins: [react()],
