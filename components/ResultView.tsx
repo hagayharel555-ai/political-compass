@@ -3,7 +3,7 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass, Youtube, Wallet, Shield, ScrollText } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass, Youtube, Wallet, Shield, ScrollText, UserPlus } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ResultViewProps {
@@ -38,6 +38,7 @@ const ResultView: React.FC<ResultViewProps> = ({
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
   const [copied, setCopied] = useState(false);
+  const [invited, setInvited] = useState(false);
   const [downloading, setDownloading] = useState(false);
   
   const resultRef = useRef<HTMLDivElement>(null);
@@ -110,6 +111,47 @@ const ResultView: React.FC<ResultViewProps> = ({
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!analysis) return;
+
+    const params = new URLSearchParams();
+    params.set('x', coordinates.x.toString());
+    params.set('y', coordinates.y.toString());
+    params.set('title', encodeURIComponent(analysis.title));
+    params.set('desc', encodeURIComponent(analysis.description));
+    if (userName) {
+        params.set('name', encodeURIComponent(userName));
+    }
+    
+    const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    
+    const text = userName 
+      ? `${userName} מזמין אותך להשוות תוצאות במצפן הפוליטי. לי יצא "${analysis.title}", מה איתך?`
+      : `יצא לי "${analysis.title}" במצפן הפוליטי. בוא/י להשוות את התוצאה שלך מולי!`;
+
+    const shareData = {
+      title: 'המצפן הפוליטי - השוואה',
+      text: text,
+      url: shareUrl
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+        setInvited(true);
+        setTimeout(() => setInvited(false), 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
       }
@@ -249,31 +291,39 @@ const ResultView: React.FC<ResultViewProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-center gap-4">
+      <div className="flex flex-col flex-wrap justify-center gap-4">
         {analysis && (
-            <>
+            <div className="w-full flex flex-col md:flex-row justify-center gap-4">
+                <button 
+                    onClick={handleInvite}
+                    className="group px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-500 transition-all hover:-translate-y-1 flex items-center justify-center gap-3 order-1 md:order-none"
+                >
+                    {invited ? <Check className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
+                    <span>{invited ? 'הקישור הועתק!' : 'הזמן חבר להשוואה'}</span>
+                </button>
+
                 <button 
                     onClick={handleShare}
-                    className="group px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3"
+                    className="group px-6 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3"
                 >
                     {copied ? <Check className="w-5 h-5 text-green-500" /> : <Share2 className="w-5 h-5" />}
-                    <span>{copied ? 'הקישור הועתק!' : 'שתף תוצאה'}</span>
+                    <span>{copied ? 'הועתק!' : 'שתף'}</span>
                 </button>
                 
                 <button 
                     onClick={handleDownload}
                     disabled={downloading}
-                    className="group px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="group px-6 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                     <Download className={`w-5 h-5 ${downloading ? 'animate-bounce' : ''}`} />
-                    <span>{downloading ? 'מוריד...' : 'הורד תמונה'}</span>
+                    <span>{downloading ? 'שמור' : 'תמונה'}</span>
                 </button>
-            </>
+            </div>
         )}
 
         <button 
           onClick={onRetake}
-          className="group px-8 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3"
+          className="group px-8 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3 w-full md:w-auto self-center mt-2"
         >
             <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
             <span>{compareCoordinates ? 'סיים השוואה / התחל מחדש' : 'התחל מבחן חדש'}</span>
