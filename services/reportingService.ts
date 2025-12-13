@@ -32,6 +32,18 @@ const getQuadrantName = (x: number, y: number): string => {
   return "מרכז";
 };
 
+// Helper to get readable score text
+const getReadableScore = (score: number) => {
+  switch (score) {
+    case 2: return "מסכים בהחלט (2)";
+    case 1: return "מסכים (1)";
+    case 0: return "ניטרלי (0)";
+    case -1: return "לא מסכים (-1)";
+    case -2: return "מתנגד בהחלט (-2)";
+    default: return `${score}`;
+  }
+};
+
 export const reportResult = async (coords: Coordinates, analysis: AnalysisResult, extraData?: AnalyticsData) => {
   // This URL should be your Google Apps Script Web App URL
   const reportingUrl = process.env.REPORTING_URL;
@@ -44,9 +56,12 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
   console.log("Attempting to report results to Google Sheets...");
   
   try {
-    // Format answers into a compact string like "1:2, 2:-1, 3:0" (QuestionID : Score)
+    // Format answers: Sort by ID for consistency and use readable text with newlines
     const answersString = extraData?.answers
-      ? extraData.answers.map(a => `${a.questionId}:${a.score}`).join(', ')
+      ? [...extraData.answers]
+          .sort((a, b) => a.questionId - b.questionId)
+          .map(a => `שאלה ${a.questionId}: ${getReadableScore(a.score)}`)
+          .join('\n')
       : "";
 
     const utm = getUtmParams();
