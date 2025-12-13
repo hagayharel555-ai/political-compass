@@ -3,7 +3,7 @@ import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
-import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility } from 'lucide-react';
+import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
 import { getSavedResult, saveResult, hasSavedResult } from './utils/storage';
 
 enum AppState {
@@ -16,10 +16,13 @@ enum AppState {
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
   const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0 });
+  // If a user opens a link, we store those coordinates here as the "Friend" to compare against
+  const [friendCoordinates, setFriendCoordinates] = useState<Coordinates | null>(null);
+  
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true); // Default to Dark Mode
-  const [isAccessible, setIsAccessible] = useState(false); // Accessibility Mode
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isAccessible, setIsAccessible] = useState(false);
 
   // User Data State
   const [userName, setUserName] = useState("");
@@ -34,9 +37,7 @@ const App: React.FC = () => {
   useEffect(() => {
     setHasHistory(hasSavedResult());
     
-    // Check system preference or default to light
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-       // Optional: Uncomment to respect system preference initially
        // setIsDarkMode(true);
     }
 
@@ -50,7 +51,12 @@ const App: React.FC = () => {
       const y = parseFloat(yParam);
 
       if (!isNaN(x) && !isNaN(y)) {
-        setCoordinates({ x, y });
+        const coords = { x, y };
+        
+        // Save as friend coordinates for later comparison
+        setFriendCoordinates(coords);
+        // Also show this result immediately as the "current" view
+        setCoordinates(coords);
         
         const titleParam = params.get('title');
         const descParam = params.get('desc');
@@ -59,7 +65,10 @@ const App: React.FC = () => {
           setCurrentAnalysis({
             title: decodeURIComponent(titleParam),
             description: decodeURIComponent(descParam),
-            ideology: '' // Optional field
+            ideology: '',
+            economicAnalysis: '', // Placeholder if missing from URL
+            nationalAnalysis: '',
+            religiousAnalysis: ''
           });
         }
         
@@ -68,7 +77,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Handle Theme Toggle
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -82,7 +90,6 @@ const App: React.FC = () => {
 
   const calculateResults = (answers: Answer[]) => {
     try {
-      // Calculate duration
       const durationSec = (Date.now() - startTime) / 1000;
       setQuizDuration(durationSec);
       setLastAnswers(answers);
@@ -121,11 +128,10 @@ const App: React.FC = () => {
       setCurrentAnalysis(null);
       setAppState(AppState.RESULTS);
       
-      // Clean URL if user takes a new test after viewing a shared link
       try {
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (historyError) {
-        console.warn("Could not update history state (likely due to secure environment restrictions):", historyError);
+        console.warn("Could not update history state:", historyError);
       }
     } catch (error) {
       console.error("Error calculating results:", error);
@@ -147,6 +153,7 @@ const App: React.FC = () => {
     if (saved) {
       setCoordinates(saved.coordinates);
       setCurrentAnalysis(saved.analysis);
+      setFriendCoordinates(null); // Clear comparison if loading own history
       setAppState(AppState.RESULTS);
     }
   };
@@ -161,11 +168,11 @@ const App: React.FC = () => {
       return;
     }
     setStartTime(Date.now());
+    // Important: We DON'T clear friendCoordinates here, so we can compare later
     setAppState(AppState.QUIZ);
   };
 
   const handleRetake = () => {
-    // Clear URL params
     try {
       window.history.pushState({}, document.title, window.location.pathname);
     } catch (historyError) {
@@ -174,6 +181,7 @@ const App: React.FC = () => {
     
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
+    setFriendCoordinates(null); // Clear friend comparison on full reset
     setCurrentAnalysis(null);
     setQuizDuration(0);
     setLastAnswers([]);
@@ -181,6 +189,13 @@ const App: React.FC = () => {
     setUserEmail("");
     setValidationError(false);
   };
+
+  // Determine if we are currently viewing a friend's result but haven't taken the test yet
+  // Logic: We are in RESULTS state, we have friendCoordinates, AND coordinates equal friendCoordinates (meaning we haven't calculated new ones)
+  const isViewingFriendResult = appState === AppState.RESULTS && 
+                                friendCoordinates !== null && 
+                                coordinates.x === friendCoordinates.x && 
+                                coordinates.y === friendCoordinates.y;
 
   return (
     <div 
@@ -193,36 +208,20 @@ const App: React.FC = () => {
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
             onClick={() => {
-              try {
-                window.history.pushState({}, document.title, window.location.pathname);
-              } catch (e) {
-                console.warn("History push failed:", e);
-              }
-              setAppState(AppState.WELCOME);
+              handleRetake();
             }}
             tabIndex={0}
-            aria-label="חזרה לדף הבית"
-            onKeyDown={(e) => e.key === 'Enter' && setAppState(AppState.WELCOME)}
           >
             <div className="bg-yellow-400 text-slate-950 p-1.5 rounded-lg shadow-[0_0_15px_rgba(250,204,21,0.3)] group-hover:scale-110 transition-transform">
                 <Compass className="w-6 h-6" strokeWidth={2.5} />
             </div>
             <div>
                 <h1 className="text-xl font-black tracking-tight leading-none text-slate-900 dark:text-slate-100">המצפן הפוליטי</h1>
-                <a 
-                  href="https://www.youtube.com/@ProjectDaat" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  פרוייקט דעת
-                </a>
+                <span className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider">פרוייקט דעת</span>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-             {/* Accessibility Toggle */}
              <button
                onClick={toggleAccessibility}
                className={`p-2 rounded-full transition-colors ${
@@ -230,23 +229,19 @@ const App: React.FC = () => {
                    ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-400' 
                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                }`}
-               aria-label={isAccessible ? "כבה מצב נגישות" : "הפעל מצב נגישות"}
-               title={isAccessible ? "כבה מצב נגישות" : "הפעל מצב נגישות"}
              >
                <Accessibility className="w-5 h-5" />
              </button>
 
-             {/* Theme Toggle */}
              <button 
               onClick={toggleTheme}
               className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              aria-label={isDarkMode ? "עבור למצב יום" : "עבור למצב לילה"}
              >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
              </button>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
-                <span>פותח ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">חגי הראל</a></span>
+                <span>פותח ע"י חגי הראל</span>
                 <span className="w-1 h-1 bg-slate-400 dark:bg-slate-600 rounded-full"></span>
                 <span>מופעל ע"י Gemini AI</span>
             </div>
@@ -256,7 +251,6 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center py-8 relative overflow-hidden">
-        {/* Decorative background elements - Hidden in accessible mode */}
         {!isAccessible && (
           <>
             <div className="absolute top-10 left-10 w-96 h-96 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full filter blur-3xl opacity-30 dark:opacity-20 animate-blob"></div>
@@ -268,7 +262,6 @@ const App: React.FC = () => {
             {appState === AppState.WELCOME && (
             <div className="max-w-2xl mx-auto px-4 text-center animate-fadeIn">
                 <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-colors duration-300">
-                {/* Accent line */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"></div>
                 
                 <div className="mb-8 inline-flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl shadow-inner border border-slate-100 dark:border-slate-700">
@@ -289,7 +282,6 @@ const App: React.FC = () => {
                     <button 
                     onClick={handleGoToRegistration}
                     className="w-full px-8 py-5 bg-yellow-400 text-slate-950 text-xl font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 flex items-center justify-center gap-3 shadow-lg"
-                    aria-label="התחל במבחן"
                     >
                     <span>התחל במבחן</span>
                     <Compass className="w-6 h-6" />
@@ -304,17 +296,6 @@ const App: React.FC = () => {
                         צפה בתוצאה אחרונה
                     </button>
                     )}
-                </div>
-
-                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-slate-500">
-                     <div className="flex items-center gap-2">
-                        <HeartHandshake className="w-4 h-4 text-yellow-500" />
-                        <span>בחסות <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">פרוייקט דעת</a></span>
-                     </div>
-                     <span className="hidden md:inline text-slate-300 dark:text-slate-700">•</span>
-                     <div>
-                        פיתוח ועיצוב: <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
-                     </div>
                 </div>
                 </div>
             </div>
@@ -340,11 +321,9 @@ const App: React.FC = () => {
                                     }}
                                     className={`w-full pr-10 pl-4 py-3 rounded-xl border ${validationError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 dark:border-slate-700 focus:ring-yellow-400/50'} bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 transition-all`}
                                     placeholder="ישראל ישראלי"
-                                    aria-invalid={validationError}
-                                    aria-describedby={validationError ? "name-error" : undefined}
                                 />
                             </div>
-                            {validationError && <p id="name-error" className="text-red-500 text-xs mt-1 mr-1" role="alert">אנא מלא את השם כדי להמשיך</p>}
+                            {validationError && <p className="text-red-500 text-xs mt-1 mr-1">אנא מלא את השם כדי להמשיך</p>}
                         </div>
 
                         <div>
@@ -366,7 +345,7 @@ const App: React.FC = () => {
                             onClick={handleStartQuiz}
                             className="w-full mt-2 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
                         >
-                            <span>המשך למבחן</span>
+                            <span>{friendCoordinates ? 'המשך להשוואה' : 'המשך למבחן'}</span>
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                     </div>
@@ -379,19 +358,42 @@ const App: React.FC = () => {
             )}
 
             {appState === AppState.RESULTS && (
-            <ResultView 
-                coordinates={coordinates} 
-                onRetake={handleRetake} 
-                initialAnalysis={currentAnalysis}
-                onAnalysisComplete={handleAnalysisComplete}
-                isDarkMode={isDarkMode}
-                isAccessible={isAccessible} // Pass prop
-                // Pass analytics props including user data
-                quizDuration={quizDuration}
-                answers={lastAnswers}
-                userName={userName}
-                userEmail={userEmail}
-            />
+            <div className="relative">
+                {isViewingFriendResult && (
+                     <div className="max-w-5xl mx-auto px-4 mb-4">
+                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Users className="w-6 h-6 text-blue-500" />
+                                <div>
+                                    <h3 className="font-bold text-slate-900 dark:text-white">אתה צופה בתוצאה ששותפה איתך</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">רוצה לראות איפה אתה עומד ביחס לחבר?</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleGoToRegistration}
+                                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors whitespace-nowrap"
+                            >
+                                השווה את עצמך עכשיו
+                            </button>
+                        </div>
+                     </div>
+                )}
+                
+                <ResultView 
+                    coordinates={coordinates} 
+                    // Only pass compareCoordinates if we are NOT in "View Friend" mode (meaning we have our own result)
+                    compareCoordinates={!isViewingFriendResult ? friendCoordinates : null}
+                    onRetake={isViewingFriendResult ? handleGoToRegistration : handleRetake} 
+                    initialAnalysis={currentAnalysis}
+                    onAnalysisComplete={handleAnalysisComplete}
+                    isDarkMode={isDarkMode}
+                    isAccessible={isAccessible}
+                    quizDuration={quizDuration}
+                    answers={lastAnswers}
+                    userName={userName}
+                    userEmail={userEmail}
+                />
+            </div>
             )}
         </div>
       </main>

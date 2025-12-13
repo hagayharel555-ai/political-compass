@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 interface CompassChartProps {
   coordinates: Coordinates;
+  compareCoordinates?: Coordinates | null;
   isDarkMode?: boolean;
   isAccessible?: boolean;
   hideControls?: boolean;
@@ -23,10 +24,12 @@ const PARTIES = [
   { name: 'זהות', x: 9, y: 1.5, color: '#14b8a6' },
 ];
 
-const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = false, isAccessible = false, hideControls = false }) => {
+const CompassChart: React.FC<CompassChartProps> = ({ coordinates, compareCoordinates, isDarkMode = false, isAccessible = false, hideControls = false }) => {
   const [showParties, setShowParties] = useState(false);
 
-  const data = [{ x: coordinates.x, y: coordinates.y, name: 'אני' }];
+  const userData = [{ x: coordinates.x, y: coordinates.y, name: 'אני' }];
+  
+  const compareData = compareCoordinates ? [{ x: compareCoordinates.x, y: compareCoordinates.y, name: 'חבר' }] : [];
 
   // Calculate closest party
   const closestParty = useMemo(() => {
@@ -47,9 +50,8 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
     return closest;
   }, [coordinates]);
 
-  // Classic Political Compass Colors (Muted/Pastel versions for background)
+  // Classic Political Compass Colors
   const bgColors = isAccessible ? {
-    // High Contrast White/Gray Backgrounds or very distinct light colors
     tl: "#ffffff",
     tr: "#f0f0f0", 
     bl: "#e0e0e0", 
@@ -64,14 +66,13 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
   const axisColor = isAccessible ? "#000000" : "#111827";
   const gridColor = isAccessible ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)";
   const userDotFill = isAccessible ? "#000000" : "#ef4444";
-  const userDotStroke = isAccessible ? "#ffffff" : "#ffffff";
-  const userDotRadius = isAccessible ? 9 : 7;
-  const strokeWidth = isAccessible ? 3 : 2;
-
+  const userDotStroke = "#ffffff";
+  const compareDotFill = "#64748b"; // Slate-500 for friend
+  
   return (
     <div className="w-full flex flex-col gap-6 items-center">
       
-      {/* Controls Header - Hidden in export mode */}
+      {/* Controls Header */}
       {!hideControls && (
         <div className="w-full flex justify-between items-center px-2">
           <button 
@@ -82,18 +83,26 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
                 : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
             }`}
             aria-pressed={showParties}
-            aria-label={showParties ? "הסתר השוואה למפלגות" : "הצג השוואה למפלגות"}
           >
             {showParties ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             {showParties ? 'הסתר מפלגות' : 'השווה למפלגות'}
           </button>
 
-          {showParties && closestParty && (
+          {compareCoordinates && (
+             <div className="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                <span className="text-slate-600 dark:text-slate-400">חבר</span>
+                <span className="w-2 h-2 rounded-full bg-red-500 ml-2"></span>
+                <span className="text-slate-600 dark:text-slate-400">אני</span>
+             </div>
+          )}
+
+          {showParties && closestParty && !compareCoordinates && (
             <div className="flex items-center gap-2 animate-fadeIn">
-              <span className="text-xs text-slate-500 dark:text-slate-400">הכי קרוב אליך:</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">הכי קרוב:</span>
               <span 
                 className="text-xs font-black px-2 py-1 rounded-md text-white shadow-sm"
-                style={{ backgroundColor: isAccessible ? '#000' : closestParty.color, border: isAccessible ? '1px solid white' : 'none' }}
+                style={{ backgroundColor: isAccessible ? '#000' : closestParty.color }}
               >
                 {closestParty.name}
               </span>
@@ -102,10 +111,10 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
         </div>
       )}
 
-      {/* Chart Wrapper with External Labels */}
+      {/* Chart Wrapper */}
       <div className="relative w-full max-w-[450px] mx-auto pt-6 pb-6 px-8">
         
-        {/* External Labels - Increased size for accessibility */}
+        {/* Labels */}
         <div className={`absolute top-0 left-0 right-0 text-center font-black ${isAccessible ? 'text-black dark:text-white text-lg' : 'text-slate-700 dark:text-slate-300 text-sm md:text-base'} tracking-wide`}>
           סמכותני (Authoritarian)
         </div>
@@ -122,34 +131,33 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
         {/* The Chart Box */}
         <div className={`aspect-square relative border-[3px] shadow-2xl overflow-hidden bg-white ${isAccessible ? 'border-black dark:border-white' : 'border-slate-800 dark:border-slate-400'}`}>
             
-            {/* Colored Backgrounds - Forced LTR to fix mirror issue in RTL document */}
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 opacity-90" dir="ltr">
-                <div style={{ backgroundColor: bgColors.tl, borderRight: isAccessible ? '1px solid black' : 'none', borderBottom: isAccessible ? '1px solid black' : 'none' }}></div>
-                <div style={{ backgroundColor: bgColors.tr, borderLeft: isAccessible ? '1px solid black' : 'none', borderBottom: isAccessible ? '1px solid black' : 'none' }}></div>
-                <div style={{ backgroundColor: bgColors.bl, borderRight: isAccessible ? '1px solid black' : 'none', borderTop: isAccessible ? '1px solid black' : 'none' }}></div>
-                <div style={{ backgroundColor: bgColors.br, borderLeft: isAccessible ? '1px solid black' : 'none', borderTop: isAccessible ? '1px solid black' : 'none' }}></div>
+                <div style={{ backgroundColor: bgColors.tl }}></div>
+                <div style={{ backgroundColor: bgColors.tr }}></div>
+                <div style={{ backgroundColor: bgColors.bl }}></div>
+                <div style={{ backgroundColor: bgColors.br }}></div>
             </div>
 
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart
-                margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-              >
-                {/* Grid Lines */}
-                <CartesianGrid 
-                    stroke={gridColor} 
-                    strokeWidth={isAccessible ? 1 : 1} 
-                />
-                
+              <ScatterChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <CartesianGrid stroke={gridColor} strokeWidth={1} />
                 <XAxis type="number" dataKey="x" domain={[-10, 10]} tickCount={21} hide />
                 <YAxis type="number" dataKey="y" domain={[-10, 10]} tickCount={21} hide />
-                
-                {/* Central Axes */}
-                <ReferenceLine y={0} stroke={axisColor} strokeWidth={strokeWidth} />
-                <ReferenceLine x={0} stroke={axisColor} strokeWidth={strokeWidth} />
+                <ReferenceLine y={0} stroke={axisColor} strokeWidth={isAccessible ? 3 : 2} />
+                <ReferenceLine x={0} stroke={axisColor} strokeWidth={isAccessible ? 3 : 2} />
+
+                {/* Friend Position */}
+                {compareData.length > 0 && (
+                     <Scatter name="Friend" data={compareData} zIndex={15}>
+                        <Cell fill={compareDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 8 : 6} />
+                        <LabelList dataKey="name" position="top" offset={5} style={{ fill: compareDotFill, fontSize: '12px', fontWeight: 'bold' }} />
+                     </Scatter>
+                )}
 
                 {/* User Position */}
-                <Scatter name="Your Position" data={data} zIndex={20}>
-                  <Cell fill={userDotFill} stroke={userDotStroke} strokeWidth={2} r={userDotRadius} />
+                <Scatter name="You" data={userData} zIndex={20}>
+                  <Cell fill={userDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 9 : 7} />
+                  {compareData.length > 0 && <LabelList dataKey="name" position="top" offset={5} style={{ fill: userDotFill, fontSize: '12px', fontWeight: 'bold' }} />}
                 </Scatter>
 
                 {/* Parties */}
@@ -164,7 +172,7 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, isDarkMode = f
                         offset={5}
                         style={{ 
                             fill: isAccessible ? (isDarkMode ? '#fff' : '#000') : '#000000', 
-                            fontSize: isAccessible ? '12px' : '10px', 
+                            fontSize: '10px', 
                             fontWeight: '800',
                             textShadow: isAccessible ? 'none' : '0px 0px 4px rgba(255,255,255,0.8)',
                             pointerEvents: 'none'

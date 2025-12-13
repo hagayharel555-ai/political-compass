@@ -5,9 +5,10 @@ import { Coordinates, AnalysisResult } from "../types";
 const getFallbackAnalysis = (coords: Coordinates): AnalysisResult => {
   const { x, y } = coords;
   let title = "";
-  // Ideology is left empty as requested
-  let ideology = "";
   let description = "";
+  let economicAnalysis = "";
+  let nationalAnalysis = "";
+  let religiousAnalysis = "";
 
   // Logic:
   // X: -10 (Left/Socialist) to +10 (Right/Capitalist)
@@ -15,23 +16,37 @@ const getFallbackAnalysis = (coords: Coordinates): AnalysisResult => {
   
   if (x < 0 && y < 0) {
     title = "שמאל-ליברלי (שמאל ציוני)";
-    description = "אתה תומך במדיניות רווחה כלכלית וצמצום פערים, לצד עמדות ליברליות מובהקות בנושאי דת ומדינה, זכויות אדם ופתרון מדיני. אתה מאמין בשוויון אזרחי מלא ובחשיבות מערכת המשפט.";
+    description = "אתה תומך במדיניות רווחה כלכלית וצמצום פערים, לצד עמדות ליברליות מובהקות בנושאי דת ומדינה, זכויות אדם ופתרון מדיני.";
+    economicAnalysis = "תמיכה במדיניות רווחה, מיסוי פרוגרסיבי ושירותים ציבוריים חזקים.";
+    nationalAnalysis = "גישה יונית מדינית, תמיכה בפתרון שתי המדינות וחיזוק מערכת המשפט.";
+    religiousAnalysis = "תמיכה מובהקת בהפרדת דת ומדינה, תחבורה ציבורית בשבת ונישואים אזרחיים.";
   } else if (x < 0 && y >= 0) {
     title = "שמאל חברתי-שמרני";
-    description = "אתה תומך במעורבות ממשלתית עמוקה בכלכלה ובביטחון סוציאלי, אך מחזיק בעמדות שמרניות יותר בנושאי ביטחון, לאום או מסורת. אתה מעדיף יציבות חברתית על פני ליברליזם רדיקלי.";
+    description = "אתה תומך במעורבות ממשלתית עמוקה בכלכלה, אך מחזיק בעמדות שמרניות בנושאי ביטחון או מסורת.";
+    economicAnalysis = "תמיכה בכלכלה סוציאליסטית, הגנה על עובדים וחיזוק רשת הביטחון החברתית.";
+    nationalAnalysis = "עמדה ביטחונית פרגמטית אך נוטה לשמרנות וחשדנות מדינית.";
+    religiousAnalysis = "כבוד למסורת ישראל, עם נכונות לשמור על הסטטוס קוו הדתי.";
   } else if (x >= 0 && y < 0) {
     title = "ימין-ליברלי (ליברליזם קלאסי)";
-    description = "אתה מאמין בשוק חופשי, הפחתת מיסים ויוזמה פרטית, אך מדגיש גם את חשיבותן של זכויות הפרט, שלטון החוק והפרדת רשויות. אתה נוטה לפרגמטיות מדינית.";
+    description = "אתה מאמין בשוק חופשי ויוזמה פרטית, לצד הגנה על זכויות הפרט ושלטון החוק.";
+    economicAnalysis = "תמיכה מובהקת בשוק חופשי, צמצום רגולציה והורדת מיסים.";
+    nationalAnalysis = "עמדה ניצית מתונה, תוך שמירה על עקרונות דמוקרטיים וזכויות אדם.";
+    religiousAnalysis = "התנגדות לכפייה דתית ותמיכה בחופש הפרט לבחור את אורח חייו.";
   } else { // x >= 0 && y >= 0
     title = "ימין-שמרני (המחנה הלאומי)";
-    description = "אתה דוגל בערכים לאומיים ומסורתיים, עמדה ביטחונית תקיפה וחיזוק המשילות. מבחינה כלכלית אתה נוטה לשוק חופשי, אך רואה חשיבות בשמירה על האופי היהודי של המדינה.";
+    description = "אתה דוגל בערכים לאומיים, עמדה ביטחונית תקיפה ושוק חופשי, תוך שמירה על צביון המדינה.";
+    economicAnalysis = "נטייה לקפיטליזם ושוק חופשי, אך לעיתים עם גישה פופוליסטית כלכלית.";
+    nationalAnalysis = "עמדה ביטחונית נצית, תמיכה בהתיישבות וגישה ספקנית כלפי מערכת המשפט.";
+    religiousAnalysis = "תמיכה בחיזוק האופי היהודי של המדינה ובשמירה על המסורת במרחב הציבורי.";
   }
 
-  // NOTE: Removed the appended text warning about automatic generation as requested.
   return {
     title,
     description,
-    ideology
+    ideology: "",
+    economicAnalysis,
+    nationalAnalysis,
+    religiousAnalysis
   };
 };
 
@@ -48,28 +63,21 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
     const ai = new GoogleGenAI({ apiKey });
     const model = 'gemini-2.5-flash';
     
-    // In Israeli context:
-    // X Axis: Economic Left (Socialism/Labor) <-> Economic Right (Capitalism/Likud/Libertarian)
-    // Y Axis: Social Liberal/Dove (Meretz/Yesh Atid) <-> Social Authoritarian/Hawk/Religious (Religious Zionism/Shas/Likud)
-    
     const prompt = `
-      You are an expert political analyst specializing in ISRAELI POLITICS (פוליטיקה ישראלית).
-      
-      The user has completed a political compass test adapted for Israel.
-      Their coordinates are:
-      Economic Axis (X): ${coords.x.toFixed(2)} (Range: -10 Socialist Left to +10 Capitalist Right)
-      Social/Security Axis (Y): ${coords.y.toFixed(2)} (Range: -10 Liberal/Secular/Dove to +10 Conservative/Religious/Hawk)
+      You are an expert political analyst for ISRAELI POLITICS.
+      User Coordinates:
+      Economic (X): ${coords.x.toFixed(2)} (-10 Socialist to +10 Capitalist)
+      Social/Security (Y): ${coords.y.toFixed(2)} (-10 Liberal/Dove to +10 Conservative/Hawk)
 
-      Based on these coordinates, provide a detailed analysis in HEBREW.
-      
-      You must return the response in strict JSON format with the following structure:
-      {
-        "title": "A short, catchy title defining their political identity (e.g., 'ימין ליברלי', 'שמאל סוציאל-דמוקרטי', 'מרכז קלאסי', 'ימין מסורתי', etc.)",
-        "description": "A 2-3 sentence analysis explaining their position. Relate to key Israeli issues like the economy, religion & state, and security/Supreme Court."
-      }
-      
-      Note: The 'ideology' field is NOT required anymore.
-      Do not include markdown code blocks. Just the raw JSON string.
+      Provide a detailed analysis in HEBREW.
+      Return strictly JSON.
+
+      Structure:
+      title: Short political identity title.
+      description: General summary (2 sentences).
+      economicAnalysis: Analysis of their economic views (Market, Welfare, Unions, Taxes).
+      nationalAnalysis: Analysis of security, territories, supreme court, and nationalism.
+      religiousAnalysis: Analysis of religion & state (Shabbat, Marriage, secularism).
     `;
 
     const response = await ai.models.generateContent({
@@ -82,10 +90,12 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
           properties: {
             title: { type: Type.STRING },
             description: { type: Type.STRING },
-            // Ideology intentionally omitted/made optional in prompt
-            ideology: { type: Type.STRING }, 
+            ideology: { type: Type.STRING },
+            economicAnalysis: { type: Type.STRING },
+            nationalAnalysis: { type: Type.STRING },
+            religiousAnalysis: { type: Type.STRING },
           },
-          required: ["title", "description"],
+          required: ["title", "description", "economicAnalysis", "nationalAnalysis", "religiousAnalysis"],
         },
       }
     });
@@ -94,13 +104,11 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
     if (!text) throw new Error("No response from Gemini");
 
     const result = JSON.parse(text);
-    // Ensure ideology field exists to satisfy type definition, even if empty
     if (!result.ideology) result.ideology = "";
     
     return result as AnalysisResult;
   } catch (error) {
     console.error("Error analyzing results with AI:", error);
-    // If AI fails (quota, network, invalid key), return fallback
     return getFallbackAnalysis(coords);
   }
 };

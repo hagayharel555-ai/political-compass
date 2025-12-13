@@ -1,3 +1,4 @@
+
 export enum Axis {
   ECONOMIC = 'economic', // X-axis: -10 (Left) to +10 (Right)
   SOCIAL = 'social',     // Y-axis: -10 (Libertarian) to +10 (Authoritarian)
@@ -24,6 +25,10 @@ export interface AnalysisResult {
   title: string;
   description: string;
   ideology: string;
+  // New detailed fields
+  economicAnalysis: string;
+  nationalAnalysis: string;
+  religiousAnalysis: string;
 }
 
 export interface SavedResult {
