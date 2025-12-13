@@ -5,6 +5,7 @@ interface AnalyticsData {
   answers: Answer[];
   userName: string;
   userEmail: string;
+  comparedWith?: string; // Name of the friend they compared against
 }
 
 export const reportResult = async (coords: Coordinates, analysis: AnalysisResult, extraData?: AnalyticsData) => {
@@ -26,8 +27,9 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
 
     const payload = {
       timestamp: new Date().toISOString(),
-      userName: extraData?.userName || "Anonymous", // New Field
-      userEmail: extraData?.userEmail || "",        // New Field
+      userName: extraData?.userName || "Anonymous",
+      userEmail: extraData?.userEmail || "",        
+      comparedWith: extraData?.comparedWith || "", // New Field sent to sheet
       x: coords.x,
       y: coords.y,
       title: analysis.title,

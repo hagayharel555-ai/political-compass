@@ -35,4 +35,6 @@ export interface SavedResult {
   coordinates: Coordinates;
   analysis: AnalysisResult;
   timestamp: number;
+  userName?: string;
+  userEmail?: string;
 }

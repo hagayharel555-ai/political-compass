@@ -4,7 +4,7 @@ import ResultView from './components/ResultView';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
 import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
-import { getSavedResult, saveResult, hasSavedResult } from './utils/storage';
+import { getSavedResult, saveResult, hasSavedResult, getSavedUserDetails } from './utils/storage';
 
 enum AppState {
   WELCOME,
@@ -18,7 +18,8 @@ const App: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0 });
   // If a user opens a link, we store those coordinates here as the "Friend" to compare against
   const [friendCoordinates, setFriendCoordinates] = useState<Coordinates | null>(null);
-  
+  const [friendName, setFriendName] = useState<string>(""); // Store the name of the friend we are comparing against
+
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -37,6 +38,13 @@ const App: React.FC = () => {
   useEffect(() => {
     setHasHistory(hasSavedResult());
     
+    // Load pre-existing user details if available
+    const savedUser = getSavedUserDetails();
+    if (savedUser) {
+        setUserName(savedUser.name);
+        setUserEmail(savedUser.email);
+    }
+
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
        // setIsDarkMode(true);
     }
@@ -60,6 +68,11 @@ const App: React.FC = () => {
         
         const titleParam = params.get('title');
         const descParam = params.get('desc');
+        const nameParam = params.get('name'); // Get the friend's name from URL
+
+        if (nameParam) {
+            setFriendName(decodeURIComponent(nameParam));
+        }
         
         if (titleParam && descParam) {
           setCurrentAnalysis({
@@ -143,7 +156,9 @@ const App: React.FC = () => {
     saveResult({
       coordinates,
       analysis,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      userName: userName,
+      userEmail: userEmail
     });
     setHasHistory(true);
   };
@@ -154,6 +169,12 @@ const App: React.FC = () => {
       setCoordinates(saved.coordinates);
       setCurrentAnalysis(saved.analysis);
       setFriendCoordinates(null); // Clear comparison if loading own history
+      setFriendName("");
+      
+      // Also restore user identity from history if present
+      if (saved.userName) setUserName(saved.userName);
+      if (saved.userEmail) setUserEmail(saved.userEmail || "");
+      
       setAppState(AppState.RESULTS);
     }
   };
@@ -182,11 +203,13 @@ const App: React.FC = () => {
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
     setFriendCoordinates(null); // Clear friend comparison on full reset
+    setFriendName("");
     setCurrentAnalysis(null);
     setQuizDuration(0);
     setLastAnswers([]);
-    setUserName("");
-    setUserEmail("");
+    
+    // We KEEP the userName and userEmail for convenience if they want to retake
+    // But we clear validation error
     setValidationError(false);
   };
 
@@ -365,8 +388,8 @@ const App: React.FC = () => {
                             <div className="flex items-center gap-3">
                                 <Users className="w-6 h-6 text-blue-500" />
                                 <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white">אתה צופה בתוצאה ששותפה איתך</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">רוצה לראות איפה אתה עומד ביחס לחבר?</p>
+                                    <h3 className="font-bold text-slate-900 dark:text-white">אתה צופה בתוצאה של {friendName || 'חבר'}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">רוצה לראות איפה אתה עומד ביחס ל{friendName || 'חבר'}?</p>
                                 </div>
                             </div>
                             <button 
@@ -392,6 +415,7 @@ const App: React.FC = () => {
                     answers={lastAnswers}
                     userName={userName}
                     userEmail={userEmail}
+                    friendName={friendName}
                 />
             </div>
             )}

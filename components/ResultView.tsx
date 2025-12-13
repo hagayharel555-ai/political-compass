@@ -18,6 +18,7 @@ interface ResultViewProps {
   answers?: Answer[];
   userName?: string;
   userEmail?: string;
+  friendName?: string;
 }
 
 const ResultView: React.FC<ResultViewProps> = ({ 
@@ -30,8 +31,9 @@ const ResultView: React.FC<ResultViewProps> = ({
   isAccessible = false,
   quizDuration = 0,
   answers = [],
-  userName = "Anonymous",
-  userEmail = ""
+  userName = "אני",
+  userEmail = "",
+  friendName
 }) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(initialAnalysis);
   const [loading, setLoading] = useState(!initialAnalysis);
@@ -66,8 +68,9 @@ const ResultView: React.FC<ResultViewProps> = ({
             reportResult(coordinates, result, {
               duration: quizDuration,
               answers: answers,
-              userName: userName,
-              userEmail: userEmail
+              userName: userName || "Anonymous",
+              userEmail: userEmail || "",
+              comparedWith: friendName // Reporting who we compared with
             });
         }
       }
@@ -79,15 +82,15 @@ const ResultView: React.FC<ResultViewProps> = ({
   const handleShare = async () => {
     if (!analysis) return;
 
-    // When sharing, we share the CURRENT user's coordinates
+    // When sharing, we share the CURRENT user's coordinates AND their Name
     const params = new URLSearchParams();
     params.set('x', coordinates.x.toString());
     params.set('y', coordinates.y.toString());
     params.set('title', encodeURIComponent(analysis.title));
     params.set('desc', encodeURIComponent(analysis.description));
-    
-    // Note: We deliberately don't include 'friendX' here, because the share link represents "My Result".
-    // When the friend opens it, these coords become the "Friend" coords for them.
+    if (userName) {
+        params.set('name', encodeURIComponent(userName));
+    }
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
     const shareData = {
@@ -159,7 +162,7 @@ const ResultView: React.FC<ResultViewProps> = ({
     <div className="max-w-5xl mx-auto w-full px-4 py-8 animate-fadeIn">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">הפרופיל הפוליטי שלך</h2>
-        {compareCoordinates && <p className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">בהשוואה לתוצאה של חבר</p>}
+        {compareCoordinates && <p className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">בהשוואה לתוצאה של {friendName || 'חבר'}</p>}
       </div>
 
       <div ref={resultRef} className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 p-4 rounded-3xl">
@@ -169,6 +172,8 @@ const ResultView: React.FC<ResultViewProps> = ({
                 <CompassChart 
                     coordinates={coordinates} 
                     compareCoordinates={compareCoordinates}
+                    userName={userName}
+                    friendName={friendName}
                     isDarkMode={isDarkMode} 
                     isAccessible={isAccessible} 
                 />
@@ -313,6 +318,8 @@ const ResultView: React.FC<ResultViewProps> = ({
                      <CompassChart 
                         coordinates={coordinates} 
                         compareCoordinates={compareCoordinates}
+                        userName={userName}
+                        friendName={friendName}
                         isDarkMode={false}
                         isAccessible={false}
                         hideControls={true}

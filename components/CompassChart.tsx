@@ -6,6 +6,8 @@ import { Eye, EyeOff } from 'lucide-react';
 interface CompassChartProps {
   coordinates: Coordinates;
   compareCoordinates?: Coordinates | null;
+  userName?: string;
+  friendName?: string;
   isDarkMode?: boolean;
   isAccessible?: boolean;
   hideControls?: boolean;
@@ -24,12 +26,20 @@ const PARTIES = [
   { name: 'זהות', x: 9, y: 1.5, color: '#14b8a6' },
 ];
 
-const CompassChart: React.FC<CompassChartProps> = ({ coordinates, compareCoordinates, isDarkMode = false, isAccessible = false, hideControls = false }) => {
+const CompassChart: React.FC<CompassChartProps> = ({ 
+  coordinates, 
+  compareCoordinates, 
+  userName = "אני",
+  friendName = "חבר",
+  isDarkMode = false, 
+  isAccessible = false, 
+  hideControls = false 
+}) => {
   const [showParties, setShowParties] = useState(false);
 
-  const userData = [{ x: coordinates.x, y: coordinates.y, name: 'אני' }];
+  const userData = [{ x: coordinates.x, y: coordinates.y, name: userName || "אני" }];
   
-  const compareData = compareCoordinates ? [{ x: compareCoordinates.x, y: compareCoordinates.y, name: 'חבר' }] : [];
+  const compareData = compareCoordinates ? [{ x: compareCoordinates.x, y: compareCoordinates.y, name: friendName || "חבר" }] : [];
 
   // Calculate closest party
   const closestParty = useMemo(() => {
@@ -91,9 +101,9 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, compareCoordin
           {compareCoordinates && (
              <div className="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
                 <span className="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span className="text-slate-600 dark:text-slate-400">חבר</span>
+                <span className="text-slate-600 dark:text-slate-400 max-w-[80px] truncate">{friendName}</span>
                 <span className="w-2 h-2 rounded-full bg-red-500 ml-2"></span>
-                <span className="text-slate-600 dark:text-slate-400">אני</span>
+                <span className="text-slate-600 dark:text-slate-400 max-w-[80px] truncate">{userName}</span>
              </div>
           )}
 
@@ -148,14 +158,14 @@ const CompassChart: React.FC<CompassChartProps> = ({ coordinates, compareCoordin
 
                 {/* Friend Position */}
                 {compareData.length > 0 && (
-                     <Scatter name="Friend" data={compareData} zIndex={15}>
+                     <Scatter name={friendName} data={compareData} zIndex={15}>
                         <Cell fill={compareDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 8 : 6} />
                         <LabelList dataKey="name" position="top" offset={5} style={{ fill: compareDotFill, fontSize: '12px', fontWeight: 'bold' }} />
                      </Scatter>
                 )}
 
                 {/* User Position */}
-                <Scatter name="You" data={userData} zIndex={20}>
+                <Scatter name={userName} data={userData} zIndex={20}>
                   <Cell fill={userDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 9 : 7} />
                   {compareData.length > 0 && <LabelList dataKey="name" position="top" offset={5} style={{ fill: userDotFill, fontSize: '12px', fontWeight: 'bold' }} />}
                 </Scatter>
