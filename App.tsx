@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
+import ChannelPopup from './components/ChannelPopup';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
 import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
@@ -16,14 +17,14 @@ enum AppState {
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
   const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0 });
-  // If a user opens a link, we store those coordinates here as the "Friend" to compare against
   const [friendCoordinates, setFriendCoordinates] = useState<Coordinates | null>(null);
-  const [friendName, setFriendName] = useState<string>(""); // Store the name of the friend we are comparing against
+  const [friendName, setFriendName] = useState<string>("");
 
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isAccessible, setIsAccessible] = useState(false);
+  const [showChannelPopup, setShowChannelPopup] = useState(false);
 
   // User Data State
   const [userName, setUserName] = useState("");
@@ -38,18 +39,12 @@ const App: React.FC = () => {
   useEffect(() => {
     setHasHistory(hasSavedResult());
     
-    // Load pre-existing user details if available
     const savedUser = getSavedUserDetails();
     if (savedUser) {
         setUserName(savedUser.name);
         setUserEmail(savedUser.email);
     }
 
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-       // setIsDarkMode(true);
-    }
-
-    // Check for shared results in URL
     const params = new URLSearchParams(window.location.search);
     const xParam = params.get('x');
     const yParam = params.get('y');
@@ -60,15 +55,12 @@ const App: React.FC = () => {
 
       if (!isNaN(x) && !isNaN(y)) {
         const coords = { x, y };
-        
-        // Save as friend coordinates for later comparison
         setFriendCoordinates(coords);
-        // Also show this result immediately as the "current" view
         setCoordinates(coords);
         
         const titleParam = params.get('title');
         const descParam = params.get('desc');
-        const nameParam = params.get('name'); // Get the friend's name from URL
+        const nameParam = params.get('name');
 
         if (nameParam) {
             setFriendName(decodeURIComponent(nameParam));
@@ -79,7 +71,7 @@ const App: React.FC = () => {
             title: decodeURIComponent(titleParam),
             description: decodeURIComponent(descParam),
             ideology: '',
-            economicAnalysis: '', // Placeholder if missing from URL
+            economicAnalysis: '',
             nationalAnalysis: '',
             religiousAnalysis: ''
           });
@@ -141,6 +133,9 @@ const App: React.FC = () => {
       setCurrentAnalysis(null);
       setAppState(AppState.RESULTS);
       
+      // Trigger Channel Popup after results are calculated
+      setTimeout(() => setShowChannelPopup(true), 2500);
+
       try {
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (historyError) {
@@ -168,10 +163,9 @@ const App: React.FC = () => {
     if (saved) {
       setCoordinates(saved.coordinates);
       setCurrentAnalysis(saved.analysis);
-      setFriendCoordinates(null); // Clear comparison if loading own history
+      setFriendCoordinates(null);
       setFriendName("");
       
-      // Also restore user identity from history if present
       if (saved.userName) setUserName(saved.userName);
       if (saved.userEmail) setUserEmail(saved.userEmail || "");
       
@@ -189,7 +183,6 @@ const App: React.FC = () => {
       return;
     }
     setStartTime(Date.now());
-    // Important: We DON'T clear friendCoordinates here, so we can compare later
     setAppState(AppState.QUIZ);
   };
 
@@ -202,19 +195,14 @@ const App: React.FC = () => {
     
     setAppState(AppState.WELCOME);
     setCoordinates({ x: 0, y: 0 });
-    setFriendCoordinates(null); // Clear friend comparison on full reset
+    setFriendCoordinates(null);
     setFriendName("");
     setCurrentAnalysis(null);
     setQuizDuration(0);
     setLastAnswers([]);
-    
-    // We KEEP the userName and userEmail for convenience if they want to retake
-    // But we clear validation error
     setValidationError(false);
   };
 
-  // Determine if we are currently viewing a friend's result but haven't taken the test yet
-  // Logic: We are in RESULTS state, we have friendCoordinates, AND coordinates equal friendCoordinates (meaning we haven't calculated new ones)
   const isViewingFriendResult = appState === AppState.RESULTS && 
                                 friendCoordinates !== null && 
                                 coordinates.x === friendCoordinates.x && 
@@ -225,22 +213,22 @@ const App: React.FC = () => {
       className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isAccessible ? 'accessible-mode' : ''}`} 
       dir="rtl"
     >
+      {showChannelPopup && <ChannelPopup onClose={() => setShowChannelPopup(false)} />}
+
       {/* Header */}
       <header className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 glass transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
-            onClick={() => {
-              handleRetake();
-            }}
+            onClick={handleRetake}
             tabIndex={0}
           >
             <div className="bg-yellow-400 text-slate-950 p-1.5 rounded-lg shadow-[0_0_15px_rgba(250,204,21,0.3)] group-hover:scale-110 transition-transform">
                 <Compass className="w-6 h-6" strokeWidth={2.5} />
             </div>
             <div>
-                <h1 className="text-xl font-black tracking-tight leading-none text-slate-900 dark:text-slate-100">המצפן הפוליטי</h1>
-                <span className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider">פרוייקט דעת</span>
+                <h1 className="text-xl font-black tracking-tight leading-none text-slate-900 dark:text-slate-100 text-right">המצפן הפוליטי</h1>
+                <span className="text-xs text-yellow-500 dark:text-yellow-400 font-bold tracking-wider block text-right">פרוייקט דעת</span>
             </div>
           </div>
           
@@ -284,7 +272,7 @@ const App: React.FC = () => {
         <div className="z-10 w-full">
             {appState === AppState.WELCOME && (
             <div className="max-w-2xl mx-auto px-4 text-center animate-fadeIn">
-                <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-colors duration-300">
+                <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-colors duration-300">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"></div>
                 
                 <div className="mb-8 inline-flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl shadow-inner border border-slate-100 dark:border-slate-700">
@@ -295,16 +283,16 @@ const App: React.FC = () => {
                     גלה את <span className={isAccessible ? "text-yellow-700 dark:text-yellow-300 underline" : "text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-200 dark:to-yellow-500"}>הזהות הפוליטית</span> שלך
                 </h2>
                 
-                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-lg mx-auto">
-                    הצטרף לאלפי משתמשים בפרוייקט דעת.
+                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-lg mx-auto font-medium">
+                    הצטרף לאלפי ישראלים המשתתפים במחקר של פרוייקט דעת.
                     <br/>
-                    אלגוריתם חכם ינתח את עמדותיך ב-40 סוגיות מפתח וימקם אותך במדויק על המפה.
+                    האלגוריתם ינתח את עמדותיך ב-52 סוגיות ליבה וימקם אותך במדויק על המפה הפוליטית.
                 </p>
                 
                 <div className="space-y-4 max-w-md mx-auto">
                     <button 
                     onClick={handleGoToRegistration}
-                    className="w-full px-8 py-5 bg-yellow-400 text-slate-950 text-xl font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 flex items-center justify-center gap-3 shadow-lg"
+                    className="w-full px-8 py-5 bg-yellow-400 text-slate-950 text-xl font-black rounded-2xl hover:bg-yellow-300 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 flex items-center justify-center gap-3 shadow-lg"
                     >
                     <span>התחל במבחן</span>
                     <Compass className="w-6 h-6" />
@@ -313,7 +301,7 @@ const App: React.FC = () => {
                     {hasHistory && (
                     <button 
                         onClick={handleLoadHistory}
-                        className="w-full px-8 py-4 bg-white dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 text-lg font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-yellow-600 dark:hover:text-yellow-400 hover:border-yellow-400/50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                        className="w-full px-8 py-4 bg-white dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-yellow-600 dark:hover:text-yellow-400 transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
                         <History className="w-5 h-5" />
                         צפה בתוצאה אחרונה
@@ -326,12 +314,12 @@ const App: React.FC = () => {
 
             {appState === AppState.REGISTRATION && (
             <div className="max-w-md mx-auto px-4 animate-fadeIn">
-                <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+                <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800">
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 text-center">קצת פרטים ומתחילים</h2>
                     
                     <div className="space-y-5">
                         <div>
-                            <label htmlFor="userName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">שם (חובה)</label>
+                            <label htmlFor="userName" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 mr-1">שם (חובה)</label>
                             <div className="relative">
                                 <User className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
                                 <input 
@@ -342,7 +330,7 @@ const App: React.FC = () => {
                                         setUserName(e.target.value);
                                         if(e.target.value) setValidationError(false);
                                     }}
-                                    className={`w-full pr-10 pl-4 py-3 rounded-xl border ${validationError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 dark:border-slate-700 focus:ring-yellow-400/50'} bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 transition-all`}
+                                    className={`w-full pr-10 pl-4 py-3 rounded-xl border ${validationError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 dark:border-slate-700 focus:ring-yellow-400/50'} bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 transition-all font-medium`}
                                     placeholder="ישראל ישראלי"
                                 />
                             </div>
@@ -350,7 +338,7 @@ const App: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="userEmail" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 mr-1">דואר אלקטרוני (רשות)</label>
+                            <label htmlFor="userEmail" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 mr-1">דואר אלקטרוני (רשות)</label>
                             <div className="relative">
                                 <Mail className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
                                 <input 
@@ -358,7 +346,7 @@ const App: React.FC = () => {
                                     type="email"
                                     value={userEmail}
                                     onChange={(e) => setUserEmail(e.target.value)}
-                                    className="w-full pr-10 pl-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all"
+                                    className="w-full pr-10 pl-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all font-medium"
                                     placeholder="your@email.com"
                                 />
                             </div>
@@ -366,7 +354,7 @@ const App: React.FC = () => {
 
                         <button 
                             onClick={handleStartQuiz}
-                            className="w-full mt-2 py-4 bg-yellow-400 text-slate-950 font-bold rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
+                            className="w-full mt-2 py-4 bg-yellow-400 text-slate-950 font-black rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
                         >
                             <span>{friendCoordinates ? 'המשך להשוואה' : 'המשך למבחן'}</span>
                             <ArrowLeft className="w-5 h-5" />
@@ -383,18 +371,18 @@ const App: React.FC = () => {
             {appState === AppState.RESULTS && (
             <div className="relative">
                 {isViewingFriendResult && (
-                     <div className="max-w-5xl mx-auto px-4 mb-4">
-                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                     <div className="max-w-5xl mx-auto px-4 mb-4 animate-fadeIn">
+                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
                                 <Users className="w-6 h-6 text-blue-500" />
-                                <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white">אתה צופה בתוצאה של {friendName || 'חבר'}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">רוצה לראות איפה אתה עומד ביחס ל{friendName || 'חבר'}?</p>
+                                <div className="text-right">
+                                    <h3 className="font-black text-slate-900 dark:text-white">אתה צופה בתוצאה של {friendName || 'חבר'}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">רוצה לראות איפה אתה עומד ביחס ל{friendName || 'חבר'}?</p>
                                 </div>
                             </div>
                             <button 
                                 onClick={handleGoToRegistration}
-                                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors whitespace-nowrap"
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
                             >
                                 השווה את עצמך עכשיו
                             </button>
@@ -404,7 +392,6 @@ const App: React.FC = () => {
                 
                 <ResultView 
                     coordinates={coordinates} 
-                    // Only pass compareCoordinates if we are NOT in "View Friend" mode (meaning we have our own result)
                     compareCoordinates={!isViewingFriendResult ? friendCoordinates : null}
                     onRetake={isViewingFriendResult ? handleGoToRegistration : handleRetake} 
                     initialAnalysis={currentAnalysis}
@@ -425,9 +412,9 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-8 mt-auto transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-slate-500 font-medium mb-2">© {new Date().getFullYear()} המצפן הפוליטי | <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">פרוייקט דעת</a></p>
-          <p className="text-slate-600 dark:text-slate-600 text-sm">
-            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-bold text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
+          <p className="text-slate-500 font-bold mb-2">© {new Date().getFullYear()} המצפן הפוליטי | <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-500 transition-colors">פרוייקט דעת</a></p>
+          <p className="text-slate-600 dark:text-slate-600 text-sm font-medium">
+            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-black text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
           </p>
         </div>
       </footer>

@@ -27,16 +27,16 @@ const getFallbackAnalysis = (coords: Coordinates): AnalysisResult => {
     nationalAnalysis = "עמדה ביטחונית פרגמטית אך נוטה לשמרנות וחשדנות מדינית.";
     religiousAnalysis = "כבוד למסורת ישראל, עם נכונות לשמור על הסטטוס קוו הדתי.";
   } else if (x >= 0 && y < 0) {
-    title = "ימין-ליברלי (ליברליזם קלאסי)";
-    description = "אתה מאמין בשוק חופשי ויוזמה פרטית, לצד הגנה על זכויות הפרט ושלטון החוק.";
-    economicAnalysis = "תמיכה מובהקת בשוק חופשי, צמצום רגולציה והורדת מיסים.";
-    nationalAnalysis = "עמדה ניצית מתונה, תוך שמירה על עקרונות דמוקרטיים וזכויות אדם.";
-    religiousAnalysis = "התנגדות לכפייה דתית ותמיכה בחופש הפרט לבחור את אורח חייו.";
+    title = "ימין-ליברלי (ליברליזם קלאסי / ליברטריאניזם)";
+    description = "אתה מאמין בשוק חופשי מוחלט, יוזמה פרטית וצמצום כוח המדינה למינימום ההכרחי.";
+    economicAnalysis = "תמיכה מובהקת בליברליזם כלכלי, הפרטות, צמצום רגולציה ושיטת השוברים בחינוך.";
+    nationalAnalysis = "עמדה ניצית פרגמטית, תוך דגש על חופש הפרט וצמצום כפייה ממסדית.";
+    religiousAnalysis = "התנגדות לכפייה דתית ותמיכה בחופש מוחלט לפרט לבחור את אורח חייו.";
   } else { // x >= 0 && y >= 0
-    title = "ימין-שמרני (המחנה הלאומי)";
-    description = "אתה דוגל בערכים לאומיים, עמדה ביטחונית תקיפה ושוק חופשי, תוך שמירה על צביון המדינה.";
-    economicAnalysis = "נטייה לקפיטליזם ושוק חופשי, אך לעיתים עם גישה פופוליסטית כלכלית.";
-    nationalAnalysis = "עמדה ביטחונית נצית, תמיכה בהתיישבות וגישה ספקנית כלפי מערכת המשפט.";
+    title = "ימין-שמרני (המחנה הלאומי / שמרנות)";
+    description = "אתה דוגל בערכים לאומיים עמוקים, ריבונות, ביטחון תקיף וכלכלה חופשית.";
+    economicAnalysis = "תמיכה בקפיטליזם ושוק חופשי, צמצום כוחם של הוועדים וחיזוק המגזר העסקי.";
+    nationalAnalysis = "עמדה ביטחונית נצית, תמיכה בהתיישבות, ריבונות ורפורמות במערכת המשפט.";
     religiousAnalysis = "תמיכה בחיזוק האופי היהודי של המדינה ובשמירה על המסורת במרחב הציבורי.";
   }
 
@@ -61,23 +61,30 @@ export const analyzeResults = async (coords: Coordinates): Promise<AnalysisResul
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = 'gemini-2.5-flash';
+    const model = 'gemini-3-flash-preview'; // Upgraded model for better reasoning
     
     const prompt = `
       You are an expert political analyst for ISRAELI POLITICS.
+      Analyze the user's political profile based on their coordinates.
+      
       User Coordinates:
-      Economic (X): ${coords.x.toFixed(2)} (-10 Socialist to +10 Capitalist)
-      Social/Security (Y): ${coords.y.toFixed(2)} (-10 Liberal/Dove to +10 Conservative/Hawk)
+      Economic (X): ${coords.x.toFixed(2)} (-10 Socialist/Left to +10 Capitalist/Right)
+      Social/Security (Y): ${coords.y.toFixed(2)} (-10 Liberal/Libertarian/Dove to +10 Conservative/Nationalist/Authoritarian/Hawk)
 
-      Provide a detailed analysis in HEBREW.
+      Key dimensions to consider:
+      - Economic: Market freedom, privatization, vouchers, flat tax vs Welfare, regulation, unions.
+      - National/Security: Sovereignty, settlement, judicial reform, gun rights, sovereignty in Judea & Samaria vs diplomacy, 2-state solution, judicial independence.
+      - Religious: Separation of church & state, civil marriage vs status quo, Jewish identity laws.
+
+      Provide a deep and professional analysis in HEBREW.
       Return strictly JSON.
 
       Structure:
-      title: Short political identity title.
-      description: General summary (2 sentences).
-      economicAnalysis: Analysis of their economic views (Market, Welfare, Unions, Taxes).
-      nationalAnalysis: Analysis of security, territories, supreme court, and nationalism.
-      religiousAnalysis: Analysis of religion & state (Shabbat, Marriage, secularism).
+      title: Short catchy political identity title (e.g. "ליברטריאני שמרן", "סוציאל-דמוקרט ליברלי").
+      description: General summary (2-3 sentences).
+      economicAnalysis: Detailed analysis of their economic views. Mention concepts like market freedom or welfare based on X.
+      nationalAnalysis: Analysis of security, territories, sovereignty, and nationalism based on Y and its interaction with X.
+      religiousAnalysis: Analysis of religion & state.
     `;
 
     const response = await ai.models.generateContent({
