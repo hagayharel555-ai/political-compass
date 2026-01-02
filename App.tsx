@@ -253,8 +253,6 @@ const App: React.FC = () => {
 
             <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
                 <span>פותח ע"י חגי הראל</span>
-                <span className="w-1 h-1 bg-slate-400 dark:bg-slate-600 rounded-full"></span>
-                <span>מופעל ע"י Gemini AI</span>
             </div>
           </div>
         </div>
