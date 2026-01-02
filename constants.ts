@@ -112,7 +112,33 @@ export const QUESTIONS: Question[] = [
     id: 24,
     text: "המיסים על דלק ורכב בישראל גבוהים מדי וצריך להוריד אותם משמעותית.",
     axis: Axis.ECONOMIC,
-    direction: 1, // Right (Populist/Free Market rhetoric vs Environmental taxation)
+    direction: 1, // Right
+  },
+
+  // --- New Right-Libertarian Economic Questions ---
+  {
+    id: 41,
+    text: "יש לעבור לשיטת 'השוברים' (Vouchers) בחינוך: המדינה תיתן תקציב לכל תלמיד, וההורים יבחרו באיזה בית ספר פרטי או ציבורי להשתמש בו.",
+    axis: Axis.ECONOMIC,
+    direction: 1, // Right/Libertarian
+  },
+  {
+    id: 42,
+    text: "שכר מינימום פוגע בעובדים חלשים בכך שהוא מונע מהם להיכנס לשוק העבודה, ויש לבטלו או להפחיתו.",
+    axis: Axis.ECONOMIC,
+    direction: 1, // Right/Libertarian
+  },
+  {
+    id: 43,
+    text: "יש להנהיג בישראל 'מס אחיד' (Flat Tax) שבו כולם משלמים אותו אחוז מהכנסתם, ללא קשר לגובה השכר.",
+    axis: Axis.ECONOMIC,
+    direction: 1, // Right/Libertarian
+  },
+  {
+    id: 44,
+    text: "זכות הקניין היא מקודשת: למדינה אסור להפקיע קרקע פרטית לצורכי ציבור (כמו כבישים או רכבת) ללא פיצוי מעל מחיר השוק והסכמת הבעלים.",
+    axis: Axis.ECONOMIC,
+    direction: 1, // Right/Libertarian
   },
 
   // --- Social/Political/Security Questions (Libertarian/Left vs Authoritarian/Right in Israel) ---
@@ -181,7 +207,7 @@ export const QUESTIONS: Question[] = [
     id: 31,
     text: "יש לחייב את כל אזרחי ישראל, כולל חרדים וערבים, בשירות צבאי או לאומי.",
     axis: Axis.SOCIAL,
-    direction: 1, // Statist/Nationalist (Note: complex, but usually 'forcing' implies state authority)
+    direction: 1, // Statist/Nationalist
   },
   {
     id: 32,
@@ -229,12 +255,62 @@ export const QUESTIONS: Question[] = [
     id: 39,
     text: "הפרדה מגדרית באירועים לציבור החרדי היא לגיטימית במרחב הציבורי.",
     axis: Axis.SOCIAL,
-    direction: 1, // Conservative/Multiculturalism (often maps to Trad values vs Liberal universalism)
+    direction: 1, // Conservative
   },
   {
     id: 40,
     text: "ישראל צריכה לשאוף להיות 'מדינת כל אזרחיה' מבחינה חוקתית.",
     axis: Axis.SOCIAL,
     direction: -1, // Left/Liberal
+  },
+
+  // --- New Right-Security/Hawk Questions ---
+  {
+    id: 45,
+    text: "יש להקל משמעותית על אזרחים שומרי חוק לקבל רישיון לנשיאת נשק אישי כדי שיוכלו להגן על עצמם ועל סביבתם.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Security-Right/Hawk
+  },
+  {
+    id: 46,
+    text: "חוק הלאום הוא חוק חיוני שמגן על זהותה של ישראל כמדינת הלאום של העם היהודי ויש לחזק אותו.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Nationalist
+  },
+  {
+    id: 47,
+    text: "בכל נושא צבאי או ביטחוני, ישראל צריכה לפעול לפי האינטרס שלה בלבד, גם אם הדבר נוגד את עמדת הקהילה הבינלאומית.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Hawk/Nationalist
+  },
+  {
+    id: 48,
+    text: "יש לאסור על עמותות המקבלות מימון מישויות מדיניות זרות להתערב בתהליכים פוליטיים או משפטיים בישראל.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Nationalist/Authoritarian
+  },
+  {
+    id: 49,
+    text: "החזקת שטחי יהודה ושומרון היא זכות מוסרית והיסטורית בלתי ניתנת לערעור של עם ישראל.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Hawk/Right
+  },
+  {
+    id: 50,
+    text: "על המדינה להפסיק כל מימון למוסדות תרבות המציגים נרטיב שסותר את קיומה של ישראל כמדינה יהודית וציונית.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Nationalist/Authoritarian
+  },
+  {
+    id: 51,
+    text: "יש לאפשר הקמת יישובים יהודיים חדשים בכל מקום בארץ ישראל ללא מגבלות של 'מרקם תכנוני' או לחץ בינלאומי.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Nationalist
+  },
+  {
+    id: 52,
+    text: "התנגדות לביצוע פקודה צבאית מטעמי מצפון או פוליטיקה היא סכנה לדמוקרטיה ויש להעניש עליה בחומרה.",
+    axis: Axis.SOCIAL,
+    direction: 1, // Authoritarian/Statist
   },
 ];

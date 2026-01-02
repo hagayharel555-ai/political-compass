@@ -3,7 +3,7 @@ import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass, Youtube, Wallet, Shield, ScrollText, UserPlus } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, Share2, Check, Download, Compass, Youtube, Wallet, Shield, ScrollText, UserPlus, User } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ResultViewProps {
@@ -41,9 +41,20 @@ const ResultView: React.FC<ResultViewProps> = ({
   const [invited, setInvited] = useState(false);
   const [downloading, setDownloading] = useState(false);
   
+  // Share Name Modal State
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [shareName, setShareName] = useState(userName === "אני" ? "" : userName);
+  const [pendingAction, setPendingAction] = useState<'share' | 'invite' | null>(null);
+
   const resultRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const hasReportedRef = useRef(false);
+
+  useEffect(() => {
+    if (userName && userName !== "אני") {
+        setShareName(userName);
+    }
+  }, [userName]);
 
   useEffect(() => {
     if (initialAnalysis) {
@@ -80,23 +91,23 @@ const ResultView: React.FC<ResultViewProps> = ({
     return () => { isMounted = false; };
   }, [coordinates, initialAnalysis]);
 
-  const handleShare = async () => {
+  const executeShare = async (name: string) => {
     if (!analysis) return;
 
-    // When sharing, we share the CURRENT user's coordinates AND their Name
     const params = new URLSearchParams();
     params.set('x', coordinates.x.toString());
     params.set('y', coordinates.y.toString());
     params.set('title', encodeURIComponent(analysis.title));
     params.set('desc', encodeURIComponent(analysis.description));
-    if (userName) {
-        params.set('name', encodeURIComponent(userName));
-    }
+    params.set('name', encodeURIComponent(name));
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    
+    const text = `התוצאה של ${name} במצפן הפוליטי: ${analysis.title}. בואו לגלות את הזהות הפוליטית שלכם:`;
+
     const shareData = {
       title: 'המצפן הפוליטי - התוצאה שלי',
-      text: `יצא לי "${analysis.title}" במצפן הפוליטי! בדקו את התוצאה שלי:`,
+      text: text,
       url: shareUrl
     };
 
@@ -108,7 +119,7 @@ const ResultView: React.FC<ResultViewProps> = ({
       }
     } else {
       try {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
@@ -117,7 +128,7 @@ const ResultView: React.FC<ResultViewProps> = ({
     }
   };
 
-  const handleInvite = async () => {
+  const executeInvite = async (name: string) => {
     if (!analysis) return;
 
     const params = new URLSearchParams();
@@ -125,15 +136,11 @@ const ResultView: React.FC<ResultViewProps> = ({
     params.set('y', coordinates.y.toString());
     params.set('title', encodeURIComponent(analysis.title));
     params.set('desc', encodeURIComponent(analysis.description));
-    if (userName) {
-        params.set('name', encodeURIComponent(userName));
-    }
+    params.set('name', encodeURIComponent(name));
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
     
-    const text = userName 
-      ? `${userName} מזמין אותך להשוות תוצאות במצפן הפוליטי. לי יצא "${analysis.title}", מה איתך?`
-      : `יצא לי "${analysis.title}" במצפן הפוליטי. בוא/י להשוות את התוצאה שלך מולי!`;
+    const text = `${name} מזמין אותך להשוות תוצאות במצפן הפוליטי. לי יצא "${analysis.title}", מה איתך?`;
 
     const shareData = {
       title: 'המצפן הפוליטי - השוואה',
@@ -156,6 +163,32 @@ const ResultView: React.FC<ResultViewProps> = ({
         console.error('Failed to copy:', err);
       }
     }
+  };
+
+  const handleShareClick = () => {
+    if (shareName && shareName.trim() !== "") {
+        executeShare(shareName);
+    } else {
+        setPendingAction('share');
+        setShowNameModal(true);
+    }
+  };
+
+  const handleInviteClick = () => {
+    if (shareName && shareName.trim() !== "") {
+        executeInvite(shareName);
+    } else {
+        setPendingAction('invite');
+        setShowNameModal(true);
+    }
+  };
+
+  const handleModalConfirm = () => {
+    if (!shareName.trim()) return;
+    setShowNameModal(false);
+    if (pendingAction === 'share') executeShare(shareName);
+    if (pendingAction === 'invite') executeInvite(shareName);
+    setPendingAction(null);
   };
 
   const handleDownload = async () => {
@@ -201,7 +234,47 @@ const ResultView: React.FC<ResultViewProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-4 py-8 animate-fadeIn">
+    <div className="max-w-5xl mx-auto w-full px-4 py-8 animate-fadeIn relative">
+      
+      {/* Name Input Modal */}
+      {showNameModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn" onClick={() => setShowNameModal(false)}>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700 relative" onClick={e => e.stopPropagation()}>
+                <div className="text-center mb-6">
+                    <div className="mx-auto w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-3">
+                        <User className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">איך להציג אותך בשיתוף?</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">כדי שהחברים ידעו שזו התוצאה שלך</p>
+                </div>
+                
+                <input 
+                    type="text" 
+                    value={shareName}
+                    onChange={(e) => setShareName(e.target.value)}
+                    placeholder="הקלד/י את השם שלך"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white mb-4 focus:ring-2 focus:ring-yellow-400 outline-none transition-all text-center font-medium"
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleModalConfirm()}
+                />
+                
+                <button 
+                    onClick={handleModalConfirm}
+                    disabled={!shareName.trim()}
+                    className="w-full py-3 bg-yellow-400 text-slate-900 font-bold rounded-xl hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                >
+                    אישור ושיתוף
+                </button>
+                 <button 
+                    onClick={() => setShowNameModal(false)}
+                    className="w-full mt-3 py-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-sm font-medium"
+                >
+                    ביטול
+                </button>
+            </div>
+        </div>
+      )}
+
       <div className="text-center mb-12">
         <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">הפרופיל הפוליטי שלך</h2>
         {compareCoordinates && <p className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">בהשוואה לתוצאה של {friendName || 'חבר'}</p>}
@@ -295,7 +368,7 @@ const ResultView: React.FC<ResultViewProps> = ({
         {analysis && (
             <div className="w-full flex flex-col md:flex-row justify-center gap-4">
                 <button 
-                    onClick={handleInvite}
+                    onClick={handleInviteClick}
                     className="group px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-500 transition-all hover:-translate-y-1 flex items-center justify-center gap-3 order-1 md:order-none"
                 >
                     {invited ? <Check className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
@@ -303,7 +376,7 @@ const ResultView: React.FC<ResultViewProps> = ({
                 </button>
 
                 <button 
-                    onClick={handleShare}
+                    onClick={handleShareClick}
                     className="group px-6 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-1 hover:shadow-lg flex items-center justify-center gap-3"
                 >
                     {copied ? <Check className="w-5 h-5 text-green-500" /> : <Share2 className="w-5 h-5" />}
@@ -368,7 +441,7 @@ const ResultView: React.FC<ResultViewProps> = ({
                      <CompassChart 
                         coordinates={coordinates} 
                         compareCoordinates={compareCoordinates}
-                        userName={userName}
+                        userName={shareName || userName} 
                         friendName={friendName}
                         isDarkMode={false}
                         isAccessible={false}
