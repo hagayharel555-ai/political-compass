@@ -67,7 +67,7 @@ const ChannelPopup: React.FC<ChannelPopupProps> = ({ onClose }) => {
                   <Youtube className="w-6 h-6" />
                 </div>
                 <div className="text-right">
-                  <span className="block font-black text-slate-900 dark:text-white text-lg">חגי הראל</span>
+                  <span className="block font-black text-slate-900 dark:text-white text-lg">חגי</span>
                   <span className="text-sm text-slate-500 dark:text-slate-400">ניתוחים פוליטיים ודעות אישיות</span>
                 </div>
               </div>

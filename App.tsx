@@ -252,7 +252,7 @@ const App: React.FC = () => {
              </button>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
-                <span>פותח ע"י חגי הראל</span>
+                <span>פותח ע"י חגי</span>
             </div>
           </div>
         </div>
@@ -412,7 +412,7 @@ const App: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-slate-500 font-bold mb-2">© {new Date().getFullYear()} המצפן הפוליטי | <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-500 transition-colors">פרוייקט דעת</a></p>
           <p className="text-slate-600 dark:text-slate-600 text-sm font-medium">
-            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-black text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי הראל</a>
+            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-black text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי</a>
           </p>
         </div>
       </footer>
