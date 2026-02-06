@@ -16,7 +16,7 @@ enum AppState {
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
-  const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0 });
+  const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0, z: 0 });
   const [friendCoordinates, setFriendCoordinates] = useState<Coordinates | null>(null);
   const [friendName, setFriendName] = useState<string>("");
 
@@ -48,13 +48,15 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const xParam = params.get('x');
     const yParam = params.get('y');
+    const zParam = params.get('z');
 
     if (xParam && yParam) {
       const x = parseFloat(xParam);
       const y = parseFloat(yParam);
+      const z = zParam ? parseFloat(zParam) : 0;
 
       if (!isNaN(x) && !isNaN(y)) {
-        const coords = { x, y };
+        const coords = { x, y, z };
         setFriendCoordinates(coords);
         setCoordinates(coords);
         
@@ -100,10 +102,13 @@ const App: React.FC = () => {
       setLastAnswers(answers);
 
       let econScore = 0;
+      let nationalScore = 0;
       let socialScore = 0;
       
       const econQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.ECONOMIC).length || 1;
-      const socialQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.SOCIAL).length || 1;
+      const nationalQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.NATIONAL_SECURITY).length || 1;
+      // Z-axis aggregates both Social/Cultural and Conservatism questions
+      const socialQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.SOCIAL_CULTURAL || q.axis === Axis.CONSERVATISM).length || 1;
 
       answers.forEach(ans => {
         const question = QUESTIONS.find(q => q.id === ans.questionId);
@@ -118,18 +123,22 @@ const App: React.FC = () => {
 
         if (question.axis === Axis.ECONOMIC) {
           econScore += impact;
-        } else {
+        } else if (question.axis === Axis.NATIONAL_SECURITY) {
+          nationalScore += impact;
+        } else if (question.axis === Axis.SOCIAL_CULTURAL || question.axis === Axis.CONSERVATISM) {
           socialScore += impact;
         }
       });
 
       const normalizedX = (econScore / (2 * econQuestionsCount)) * 10;
-      const normalizedY = (socialScore / (2 * socialQuestionsCount)) * 10;
+      const normalizedY = (nationalScore / (2 * nationalQuestionsCount)) * 10;
+      const normalizedZ = (socialScore / (2 * socialQuestionsCount)) * 10;
 
       const safeX = Math.max(-10, Math.min(10, normalizedX || 0));
       const safeY = Math.max(-10, Math.min(10, normalizedY || 0));
+      const safeZ = Math.max(-10, Math.min(10, normalizedZ || 0));
 
-      setCoordinates({ x: safeX, y: safeY });
+      setCoordinates({ x: safeX, y: safeY, z: safeZ });
       setCurrentAnalysis(null);
       setAppState(AppState.RESULTS);
       
@@ -194,7 +203,7 @@ const App: React.FC = () => {
     }
     
     setAppState(AppState.WELCOME);
-    setCoordinates({ x: 0, y: 0 });
+    setCoordinates({ x: 0, y: 0, z: 0 });
     setFriendCoordinates(null);
     setFriendName("");
     setCurrentAnalysis(null);

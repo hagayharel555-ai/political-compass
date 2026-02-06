@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell, LabelList } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell, LabelList, ReferenceArea } from 'recharts';
 import { Coordinates } from '../types';
 
 interface CompassChartProps {
@@ -10,6 +10,7 @@ interface CompassChartProps {
   isDarkMode?: boolean;
   isAccessible?: boolean;
   hideControls?: boolean;
+  isPrinting?: boolean; 
 }
 
 const CompassChart: React.FC<CompassChartProps> = ({ 
@@ -19,110 +20,125 @@ const CompassChart: React.FC<CompassChartProps> = ({
   friendName = "חבר",
   isDarkMode = false, 
   isAccessible = false, 
-  hideControls = false 
+  hideControls = false,
+  isPrinting = false
 }) => {
-  const userData = [{ x: coordinates.x, y: coordinates.y, name: userName || "אני" }];
-  const compareData = compareCoordinates ? [{ x: compareCoordinates.x, y: compareCoordinates.y, name: friendName || "חבר" }] : [];
-
-  // Classic Political Compass Colors
-  const bgColors = isAccessible ? {
-    tl: "#ffffff",
-    tr: "#f0f0f0", 
-    bl: "#e0e0e0", 
-    br: "#ffffff", 
-  } : {
-    tl: "#fca5a5", // Red-300 (Auth Left)
-    tr: "#93c5fd", // Blue-300 (Auth Right)
-    bl: "#86efac", // Green-300 (Lib Left)
-    br: "#fde047", // Yellow-300 (Lib Right)
+  const safeCoords = {
+    x: Number.isNaN(Number(coordinates.x)) ? 0 : Number(coordinates.x),
+    y: Number.isNaN(Number(coordinates.y)) ? 0 : Number(coordinates.y),
+    z: Number.isNaN(Number(coordinates.z)) ? 0 : Number(coordinates.z)
   };
 
-  const axisColor = isAccessible ? "#000000" : "#111827";
-  const gridColor = isAccessible ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)";
-  const userDotFill = isAccessible ? "#000000" : "#ef4444";
-  const userDotStroke = "#ffffff";
-  const compareDotFill = "#64748b"; // Slate-500 for friend
+  const userData = [{ x: safeCoords.x, y: safeCoords.y, name: userName || "אני" }];
   
-  return (
-    <div className="w-full flex flex-col gap-6 items-center">
+  const compareData = compareCoordinates ? [{ 
+    x: Number.isNaN(Number(compareCoordinates.x)) ? 0 : Number(compareCoordinates.x), 
+    y: Number.isNaN(Number(compareCoordinates.y)) ? 0 : Number(compareCoordinates.y), 
+    name: friendName || "חבר" 
+  }] : [];
+
+  // Colors matched to the user's mockup image
+  const colors = isPrinting ? {
+    authLeft: "#ffbaba", // Pink
+    authRight: "#badaff", // Blue
+    libLeft: "#baffba", // Green
+    libRight: "#fff2ba", // Yellow
+    grid: "#e2e8f0",
+    axis: "#475569"
+  } : isAccessible ? {
+    authLeft: "#e0e0e0", authRight: "#f0f0f0", libLeft: "#d0d0d0", libRight: "#e0e0e0", grid: "#000000", axis: "#000000"
+  } : {
+    authLeft: "#ff4d4d", authRight: "#4d94ff", libLeft: "#44cc44", libRight: "#ffcc00",
+    grid: (isDarkMode && !isPrinting) ? "#334155" : "#cbd5e1",
+    axis: (isDarkMode && !isPrinting) ? "#f8fafc" : "#0f172a"
+  };
+
+  const opacity = (isAccessible || isPrinting) ? 1 : 0.7;
+  const ticks = [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10];
+
+  const ChartContent = (
+    <ScatterChart 
+      margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+      width={isPrinting ? 500 : undefined}
+      height={isPrinting ? 500 : undefined}
+    >
+      <XAxis type="number" dataKey="x" domain={[-10, 10]} ticks={ticks} hide />
+      <YAxis type="number" dataKey="y" domain={[-10, 10]} ticks={ticks} hide />
       
-      {/* Controls Header */}
-      {!hideControls && (
-        <div className="w-full flex justify-between items-center px-2">
-          {compareCoordinates ? (
-             <div className="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                <span className="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span className="text-slate-600 dark:text-slate-400 max-w-[80px] truncate">{friendName}</span>
-                <span className="w-2 h-2 rounded-full bg-red-500 ml-2"></span>
-                <span className="text-slate-600 dark:text-slate-400 max-w-[80px] truncate">{userName}</span>
-             </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                <span className="text-slate-600 dark:text-slate-400">המיקום שלך</span>
-            </div>
-          )}
-          <div /> {/* Spacer */}
+      <ReferenceArea x1={-10} x2={0} y1={0} y2={10} fill={colors.authLeft} fillOpacity={opacity} isFront={false} />
+      <ReferenceArea x1={0} x2={10} y1={0} y2={10} fill={colors.authRight} fillOpacity={opacity} isFront={false} />
+      <ReferenceArea x1={-10} x2={0} y1={-10} y2={0} fill={colors.libLeft} fillOpacity={opacity} isFront={false} />
+      <ReferenceArea x1={0} x2={10} y1={-10} y2={0} fill={colors.libRight} fillOpacity={opacity} isFront={false} />
+
+      <CartesianGrid stroke={colors.grid} strokeDasharray="0" strokeOpacity={isPrinting ? 1 : 0.3} />
+      <ReferenceLine x={0} stroke={colors.axis} strokeWidth={2} />
+      <ReferenceLine y={0} stroke={colors.axis} strokeWidth={2} />
+
+      {compareData.length > 0 && (
+        <Scatter name={friendName} data={compareData} isAnimationActive={false}>
+          <Cell fill="#475569" stroke="white" strokeWidth={2} r={isPrinting ? 8 : 8} />
+          <LabelList dataKey="name" position="top" offset={10} style={{ fill: '#0f172a', fontWeight: '800', fontSize: isPrinting ? '12px' : '11px', paintOrder: 'stroke', stroke: '#ffffff', strokeWidth: '3px' }} />
+        </Scatter>
+      )}
+
+      <Scatter name={userName} data={userData} isAnimationActive={false}>
+        <Cell fill="#dc2626" stroke="#ffffff" strokeWidth={isPrinting ? 2 : 3} r={isPrinting ? 6 : 12} />
+        {!isPrinting && <LabelList dataKey="name" position="top" offset={12} style={{ fill: '#0f172a', fontWeight: '900', fontSize: '13px', paintOrder: 'stroke', stroke: '#ffffff', strokeWidth: '4px' }} />}
+      </Scatter>
+    </ScatterChart>
+  );
+
+  return (
+    <div className={`w-full flex flex-col items-center ${isPrinting ? 'bg-transparent' : 'gap-6'}`}>
+      {!hideControls && !isPrinting && (
+        <div className="w-full flex justify-center">
+          <div className="flex items-center gap-3 text-sm font-black bg-white/80 dark:bg-slate-800/80 px-6 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-xl backdrop-blur-md">
+            <div className="w-4 h-4 rounded-full bg-red-600 ring-2 ring-white shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
+            <span className="text-slate-900 dark:text-white">המיקום הפוליטי שלך</span>
+          </div>
         </div>
       )}
 
-      {/* Chart Wrapper */}
-      <div className="relative w-full max-w-[450px] mx-auto pt-6 pb-6 px-8">
-        
-        {/* Labels */}
-        <div className={`absolute top-0 left-0 right-0 text-center font-black ${isAccessible ? 'text-black dark:text-white text-lg' : 'text-slate-700 dark:text-slate-300 text-sm md:text-base'} tracking-wide`}>
-          סמכותני (Authoritarian)
+      <div className={`relative ${isPrinting ? 'w-[500px] h-[500px]' : 'w-full max-w-[500px] aspect-square mx-auto'}`}>
+        {/* Mockup labels */}
+        <div className="absolute -top-8 left-0 right-0 text-center">
+            <span className={`font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`}>
+                {isPrinting ? 'סמכותני (Authoritarian)' : 'סמכותני'}
+            </span>
         </div>
-        <div className={`absolute bottom-0 left-0 right-0 text-center font-black ${isAccessible ? 'text-black dark:text-white text-lg' : 'text-slate-700 dark:text-slate-300 text-sm md:text-base'} tracking-wide`}>
-          ליברלי (Libertarian)
+        <div className="absolute -bottom-10 left-0 right-0 text-center">
+            <span className={`font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`}>
+                {isPrinting ? 'ליברלי (Libertarian)' : 'ליברלי'}
+            </span>
         </div>
-        <div className="absolute top-0 bottom-0 left-0 flex items-center justify-center w-8">
-             <span className={`-rotate-90 text-center font-black ${isAccessible ? 'text-black dark:text-white text-lg' : 'text-slate-700 dark:text-slate-300 text-sm md:text-base'} whitespace-nowrap tracking-wide`}>שמאל (Left)</span>
+        <div className="absolute top-0 bottom-0 -left-12 flex items-center">
+             <span className={`writing-mode-vertical rotate-180 font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`} style={{ writingMode: 'vertical-rl' }}>
+                 {isPrinting ? 'שמאל (Left)' : 'שמאל'}
+             </span>
         </div>
-        <div className="absolute top-0 bottom-0 right-0 flex items-center justify-center w-8">
-             <span className={`rotate-90 text-center font-black ${isAccessible ? 'text-black dark:text-white text-lg' : 'text-slate-700 dark:text-slate-300 text-sm md:text-base'} whitespace-nowrap tracking-wide`}>ימין (Right)</span>
+        <div className="absolute top-0 bottom-0 -right-12 flex items-center">
+             <span className={`writing-mode-vertical rotate-180 font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`} style={{ writingMode: 'vertical-rl' }}>
+                 {isPrinting ? 'ימין (Right)' : 'ימין'}
+             </span>
         </div>
 
-        {/* The Chart Box */}
-        <div className={`aspect-square relative border-[3px] shadow-2xl overflow-hidden bg-white ${isAccessible ? 'border-black dark:border-white' : 'border-slate-800 dark:border-slate-400'}`}>
-            
-            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 opacity-90" dir="ltr">
-                <div style={{ backgroundColor: bgColors.tl }}></div>
-                <div style={{ backgroundColor: bgColors.tr }}></div>
-                <div style={{ backgroundColor: bgColors.bl }}></div>
-                <div style={{ backgroundColor: bgColors.br }}></div>
-            </div>
+        {/* Coordinates in chart corner */}
+        {isPrinting && (
+           <div className="absolute -bottom-6 -right-2 text-[12px] font-bold text-slate-600">
+             ({safeCoords.x.toFixed(1)} , {safeCoords.y.toFixed(1)})
+           </div>
+        )}
 
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke={gridColor} strokeWidth={1} />
-                <XAxis type="number" dataKey="x" domain={[-10, 10]} tickCount={21} hide />
-                <YAxis type="number" dataKey="y" domain={[-10, 10]} tickCount={21} hide />
-                <ReferenceLine y={0} stroke={axisColor} strokeWidth={isAccessible ? 3 : 2} />
-                <ReferenceLine x={0} stroke={axisColor} strokeWidth={isAccessible ? 3 : 2} />
-
-                {/* Friend Position */}
-                {compareData.length > 0 && (
-                     <Scatter name={friendName} data={compareData} zIndex={15}>
-                        <Cell fill={compareDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 8 : 6} />
-                        <LabelList dataKey="name" position="top" offset={5} style={{ fill: compareDotFill, fontSize: '12px', fontWeight: 'bold' }} />
-                     </Scatter>
-                )}
-
-                {/* User Position */}
-                <Scatter name={userName} data={userData} zIndex={20}>
-                  <Cell fill={userDotFill} stroke={userDotStroke} strokeWidth={2} r={isAccessible ? 9 : 7} />
-                  {compareData.length > 0 && <LabelList dataKey="name" position="top" offset={5} style={{ fill: userDotFill, fontSize: '12px', fontWeight: 'bold' }} />}
-                </Scatter>
-                
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
-              </ScatterChart>
-            </ResponsiveContainer>
-        </div>
-        
-        {/* Point Annotation */}
-        <div className={`absolute bottom-1 right-2 ${isAccessible ? 'text-xs text-black font-bold' : 'text-[9px] text-slate-400 dark:text-slate-500'} font-mono`}>
-           ({coordinates.x.toFixed(1)}, {coordinates.y.toFixed(1)})
+        <div className={`absolute inset-0 border-[2px] ${isPrinting ? 'border-[#475569]' : 'border-slate-900 dark:border-slate-400 shadow-2xl'} bg-white overflow-hidden rounded-sm`}>
+            {isPrinting ? (
+              <div className="w-full h-full flex items-center justify-center">
+                 {ChartContent}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {ChartContent}
+              </ResponsiveContainer>
+            )}
         </div>
       </div>
     </div>
