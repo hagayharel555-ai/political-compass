@@ -118,7 +118,14 @@ const ResultView: React.FC<ResultViewProps> = ({
         useCORS: true,
         logging: false,
         width: 1000,
-        height: 1600
+        height: 1600,
+        onclone: (clonedDoc) => {
+            // Ensure fonts are loaded in the clone
+            const element = clonedDoc.querySelector('[data-download-container]') as HTMLElement;
+            if (element) {
+                element.style.fontFamily = "'Rubik', sans-serif";
+            }
+        }
       });
       
       const link = document.createElement('a');
@@ -153,26 +160,31 @@ const ResultView: React.FC<ResultViewProps> = ({
       
       {/* 
           Hidden Download Infographic Card 
-          Designed to match user mockup exactly 
+          Fixed: Uses dir="ltr" to prevent html2canvas text reversal bug
+          Layout is manually aligned to look RTL
       */}
       <div className="fixed -left-[5000px] top-0 pointer-events-none">
         <div 
           ref={downloadContainerRef}
+          data-download-container
           className="w-[1000px] h-[1600px] bg-white p-20 flex flex-col items-center border-[20px] border-slate-900 rounded-[60px] relative"
           style={{ fontFamily: 'Rubik, sans-serif' }}
-          dir="rtl"
+          dir="ltr" 
         >
-          {/* Header Row */}
+          {/* Header Row - Manually ordered for LTR container to look RTL (Date Left, Logo Right) */}
           <div className="w-full flex items-start justify-between mb-24">
-            <div className="text-right">
-              <span className="block text-[28px] font-bold text-slate-400 mb-2">הופק בתאריך</span>
-              <span className="block text-[36px] font-black text-slate-900">{currentDate}</span>
+            
+            {/* Left Side: Date (in LTR this is physically left) */}
+            <div className="text-left">
+              <span className="block text-[28px] font-bold text-slate-400 mb-2 text-right">הופק בתאריך</span>
+              <span className="block text-[36px] font-black text-slate-900 text-right">{currentDate}</span>
             </div>
             
+            {/* Right Side: Logo (in LTR this is physically right) */}
             <div className="relative">
                 <div className="absolute top-[-80px] right-[-80px] w-[500px] h-[250px] bg-yellow-400 rounded-bl-[150px] z-0"></div>
                 <div className="relative z-10 flex flex-col items-end pt-4 pr-10">
-                   <div className="flex items-center gap-4 mb-2">
+                   <div className="flex items-center gap-4 mb-2 flex-row-reverse">
                         <h1 className="text-[52px] font-black text-slate-950 leading-none">המצפן הפוליטי</h1>
                         <div className="bg-slate-900 p-3 rounded-2xl border-4 border-slate-950">
                             <Compass className="w-16 h-16 text-yellow-400" />
@@ -188,41 +200,44 @@ const ResultView: React.FC<ResultViewProps> = ({
             <CompassChart coordinates={coordinates} isPrinting={true} hideControls={true} />
           </div>
 
-          {/* Analysis Card */}
+          {/* Analysis Card - Text Alignment Forced Right */}
           <div className="w-full bg-slate-50 border-[3px] border-slate-200 rounded-[50px] p-20 text-center mb-10 shadow-sm">
-             <h2 className="text-[64px] font-black text-slate-900 mb-8 leading-tight">
+             <h2 className="text-[64px] font-black text-slate-900 mb-8 leading-tight" style={{ direction: 'rtl' }}>
                 {analysis?.title}
              </h2>
-             <p className="text-[36px] text-slate-700 font-bold leading-relaxed mb-16">
+             <p className="text-[36px] text-slate-700 font-bold leading-relaxed mb-16 px-10" style={{ direction: 'rtl' }}>
                {analysis?.description}
              </p>
 
-             {/* Three Columns Analysis */}
+             {/* Three Columns Analysis - Order reversed for visual RTL in LTR container */}
              <div className="grid grid-cols-3 gap-10 text-right">
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
-                    <span className="text-[32px] font-black text-slate-900 mb-4">כלכלה</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center">{analysis?.economicAnalysis}</p>
-                </div>
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
-                    <span className="text-[32px] font-black text-slate-900 mb-4">ביטחון</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center">{analysis?.nationalAnalysis}</p>
-                </div>
+                {/* Column 3 (Left physically) -> Religious */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">דת ומדינה</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center">{analysis?.religiousAnalysis}</p>
+                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.religiousAnalysis}</p>
+                </div>
+                {/* Column 2 (Center) -> Security */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
+                    <span className="text-[32px] font-black text-slate-900 mb-4">ביטחון</span>
+                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.nationalAnalysis}</p>
+                </div>
+                {/* Column 1 (Right physically) -> Economy */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
+                    <span className="text-[32px] font-black text-slate-900 mb-4">כלכלה</span>
+                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.economicAnalysis}</p>
                 </div>
              </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer - Manually aligned */}
           <div className="w-full mt-auto flex flex-col items-center gap-10">
              <span className="text-[44px] font-black text-slate-950 tracking-tighter">politicalil.vercel.app</span>
              <div className="flex gap-20">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-row-reverse">
                     <div className="w-16 h-10 bg-red-600 rounded-md"></div>
                     <span className="text-[32px] font-black text-slate-500">@ProjectDaat</span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-row-reverse">
                     <div className="w-16 h-10 bg-red-600 rounded-md"></div>
                     <span className="text-[32px] font-black text-slate-500">@HagaiDaat</span>
                 </div>
@@ -231,7 +246,7 @@ const ResultView: React.FC<ResultViewProps> = ({
         </div>
       </div>
 
-      {/* Visible UI Section */}
+      {/* Visible UI Section (Standard RTL) */}
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden mb-8 transition-colors duration-300">
         <div className="p-8 md:p-12">
           <div className="text-center mb-12">
