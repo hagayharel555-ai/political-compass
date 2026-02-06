@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
+import ConservatismMeter from './ConservatismMeter';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
 import { RefreshCw, Share2, Check, Download, Compass, Wallet, Shield, ScrollText, RotateCcw, Youtube } from 'lucide-react';
@@ -271,6 +272,7 @@ const ResultView: React.FC<ResultViewProps> = ({
                 isDarkMode={isDarkMode}
                 isAccessible={isAccessible}
               />
+              <ConservatismMeter score={coordinates.z} />
             </div>
 
             <div className="space-y-6">
