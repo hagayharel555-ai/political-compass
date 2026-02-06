@@ -282,8 +282,14 @@ const App: React.FC = () => {
                 <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-colors duration-300">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"></div>
                 
-                <div className="mb-8 inline-flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl shadow-inner border border-slate-100 dark:border-slate-700">
+                <div className="mb-6 inline-flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl shadow-inner border border-slate-100 dark:border-slate-700">
                     <BrainCircuit className="w-12 h-12 text-yellow-500 dark:text-yellow-400" />
+                </div>
+
+                <div className="mb-6">
+                    <span className="inline-block px-4 py-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-sm font-black rounded-full border border-yellow-200 dark:border-yellow-700 shadow-sm">
+                        🇮🇱 המצפן הפוליטי היחיד בישראל
+                    </span>
                 </div>
                 
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
@@ -293,7 +299,7 @@ const App: React.FC = () => {
                 <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-lg mx-auto font-medium">
                     הצטרף לאלפי ישראלים המשתתפים במחקר של פרוייקט דעת.
                     <br/>
-                    האלגוריתם ינתח את עמדותיך ב-52 סוגיות ליבה וימקם אותך במדויק על המפה הפוליטית.
+                    האלגוריתם ינתח את עמדותיך ב-49 סוגיות ליבה וימקם אותך במדויק על המפה הפוליטית.
                 </p>
                 
                 <div className="space-y-4 max-w-md mx-auto">
@@ -361,9 +367,9 @@ const App: React.FC = () => {
 
                         <button 
                             onClick={handleStartQuiz}
-                            className="w-full mt-2 py-4 bg-yellow-400 text-slate-950 font-black rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
+                            className="w-full mt-4 px-8 py-4 bg-yellow-400 text-slate-950 text-lg font-black rounded-xl hover:bg-yellow-300 transition-all hover:-translate-y-1 shadow-lg active:scale-95 flex items-center justify-center gap-2"
                         >
-                            <span>{friendCoordinates ? 'המשך להשוואה' : 'המשך למבחן'}</span>
+                            <span>התחל מבחן</span>
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                     </div>
@@ -372,59 +378,29 @@ const App: React.FC = () => {
             )}
 
             {appState === AppState.QUIZ && (
-            <Quiz onComplete={calculateResults} />
+            <div className="animate-fadeIn">
+                <Quiz onComplete={calculateResults} />
+            </div>
             )}
 
             {appState === AppState.RESULTS && (
-            <div className="relative">
-                {isViewingFriendResult && (
-                     <div className="max-w-5xl mx-auto px-4 mb-4 animate-fadeIn">
-                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <Users className="w-6 h-6 text-blue-500" />
-                                <div className="text-right">
-                                    <h3 className="font-black text-slate-900 dark:text-white">אתה צופה בתוצאה של {friendName || 'חבר'}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">רוצה לראות איפה אתה עומד ביחס ל{friendName || 'חבר'}?</p>
-                                </div>
-                            </div>
-                            <button 
-                                onClick={handleGoToRegistration}
-                                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
-                            >
-                                השווה את עצמך עכשיו
-                            </button>
-                        </div>
-                     </div>
-                )}
-                
-                <ResultView 
-                    coordinates={coordinates} 
-                    compareCoordinates={!isViewingFriendResult ? friendCoordinates : null}
-                    onRetake={isViewingFriendResult ? handleGoToRegistration : handleRetake} 
-                    initialAnalysis={currentAnalysis}
-                    onAnalysisComplete={handleAnalysisComplete}
-                    isDarkMode={isDarkMode}
-                    isAccessible={isAccessible}
-                    quizDuration={quizDuration}
-                    answers={lastAnswers}
-                    userName={userName}
-                    userEmail={userEmail}
-                    friendName={friendName}
-                />
-            </div>
+            <ResultView 
+                coordinates={coordinates} 
+                compareCoordinates={friendCoordinates}
+                onRetake={handleRetake} 
+                initialAnalysis={currentAnalysis}
+                onAnalysisComplete={handleAnalysisComplete}
+                isDarkMode={isDarkMode}
+                isAccessible={isAccessible}
+                quizDuration={quizDuration}
+                answers={lastAnswers}
+                userName={userName}
+                userEmail={userEmail}
+                friendName={friendName}
+            />
             )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-8 mt-auto transition-colors duration-300">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-slate-500 font-bold mb-2">© {new Date().getFullYear()} המצפן הפוליטי | <a href="https://www.youtube.com/@ProjectDaat" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-500 transition-colors">פרוייקט דעת</a></p>
-          <p className="text-slate-600 dark:text-slate-600 text-sm font-medium">
-            פותח באהבה ע"י <a href="https://www.youtube.com/@HagaiDaat" target="_blank" rel="noopener noreferrer" className="font-black text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">חגי</a>
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };
