@@ -119,7 +119,7 @@ const ResultView: React.FC<ResultViewProps> = ({
         useCORS: true,
         logging: false,
         width: 1000,
-        height: 1600,
+        height: 1750, // Increased height to accommodate the conservatism meter
         onclone: (clonedDoc) => {
             // Ensure fonts are loaded in the clone
             const element = clonedDoc.querySelector('[data-download-container]') as HTMLElement;
@@ -168,12 +168,12 @@ const ResultView: React.FC<ResultViewProps> = ({
         <div 
           ref={downloadContainerRef}
           data-download-container
-          className="w-[1000px] h-[1600px] bg-white p-20 flex flex-col items-center border-[20px] border-slate-900 rounded-[60px] relative"
+          className="w-[1000px] h-[1750px] bg-white p-20 flex flex-col items-center border-[20px] border-slate-900 rounded-[60px] relative"
           style={{ fontFamily: 'Rubik, sans-serif' }}
           dir="ltr" 
         >
           {/* Header Row - Manually ordered for LTR container to look RTL (Date Left, Logo Right) */}
-          <div className="w-full flex items-start justify-between mb-24">
+          <div className="w-full flex items-start justify-between mb-16">
             
             {/* Left Side: Date (in LTR this is physically left) */}
             <div className="text-left">
@@ -197,16 +197,17 @@ const ResultView: React.FC<ResultViewProps> = ({
           </div>
 
           {/* Chart Section */}
-          <div className="w-full flex justify-center scale-[1.3] mb-32 mt-10">
+          <div className="w-full flex flex-col items-center justify-center scale-[1.0] mb-20 mt-4">
             <CompassChart coordinates={coordinates} isPrinting={true} hideControls={true} />
+            <ConservatismMeter score={coordinates.z} isPrinting={true} />
           </div>
 
           {/* Analysis Card - Text Alignment Forced Right */}
-          <div className="w-full bg-slate-50 border-[3px] border-slate-200 rounded-[50px] p-20 text-center mb-10 shadow-sm">
-             <h2 className="text-[64px] font-black text-slate-900 mb-8 leading-tight" style={{ direction: 'rtl' }}>
+          <div className="w-full bg-slate-50 border-[3px] border-slate-200 rounded-[50px] p-16 text-center mb-10 shadow-sm">
+             <h2 className="text-[64px] font-black text-slate-900 mb-6 leading-tight" style={{ direction: 'rtl' }}>
                 {analysis?.title}
              </h2>
-             <p className="text-[36px] text-slate-700 font-bold leading-relaxed mb-16 px-10" style={{ direction: 'rtl' }}>
+             <p className="text-[32px] text-slate-700 font-bold leading-relaxed mb-12 px-10" style={{ direction: 'rtl' }}>
                {analysis?.description}
              </p>
 
@@ -215,17 +216,17 @@ const ResultView: React.FC<ResultViewProps> = ({
                 {/* Column 3 (Left physically) -> Religious */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">דת ומדינה</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.religiousAnalysis}</p>
+                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.religiousAnalysis}</p>
                 </div>
                 {/* Column 2 (Center) -> Security */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">ביטחון</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.nationalAnalysis}</p>
+                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.nationalAnalysis}</p>
                 </div>
                 {/* Column 1 (Right physically) -> Economy */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">כלכלה</span>
-                    <p className="text-[22px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.economicAnalysis}</p>
+                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.economicAnalysis}</p>
                 </div>
              </div>
           </div>

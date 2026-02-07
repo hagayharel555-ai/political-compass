@@ -65,10 +65,10 @@ const CompassChart: React.FC<CompassChartProps> = ({
       <XAxis type="number" dataKey="x" domain={[-10, 10]} ticks={ticks} hide />
       <YAxis type="number" dataKey="y" domain={[-10, 10]} ticks={ticks} hide />
       
-      <ReferenceArea x1={-10} x2={0} y1={0} y2={10} fill={colors.authLeft} fillOpacity={opacity} isFront={false} />
-      <ReferenceArea x1={0} x2={10} y1={0} y2={10} fill={colors.authRight} fillOpacity={opacity} isFront={false} />
-      <ReferenceArea x1={-10} x2={0} y1={-10} y2={0} fill={colors.libLeft} fillOpacity={opacity} isFront={false} />
-      <ReferenceArea x1={0} x2={10} y1={-10} y2={0} fill={colors.libRight} fillOpacity={opacity} isFront={false} />
+      <ReferenceArea x1={-10} x2={0} y1={0} y2={10} fill={colors.authLeft} fillOpacity={opacity} />
+      <ReferenceArea x1={0} x2={10} y1={0} y2={10} fill={colors.authRight} fillOpacity={opacity} />
+      <ReferenceArea x1={-10} x2={0} y1={-10} y2={0} fill={colors.libLeft} fillOpacity={opacity} />
+      <ReferenceArea x1={0} x2={10} y1={-10} y2={0} fill={colors.libRight} fillOpacity={opacity} />
 
       <CartesianGrid stroke={colors.grid} strokeDasharray="0" strokeOpacity={isPrinting ? 1 : 0.3} />
       <ReferenceLine x={0} stroke={colors.axis} strokeWidth={2} />
@@ -88,9 +88,59 @@ const CompassChart: React.FC<CompassChartProps> = ({
     </ScatterChart>
   );
 
+  // If printing, we use a dedicated grid layout to ensure labels are captured by html2canvas
+  if (isPrinting) {
+      return (
+          <div className="flex flex-col items-center justify-center p-4 bg-transparent w-[700px]">
+              {/* Top Label */}
+              <div className="mb-2 text-center">
+                  <span className="text-2xl font-black text-slate-500 uppercase tracking-tight block">
+                    סמכותני (Authoritarian)
+                  </span>
+              </div>
+
+              <div className="flex items-center justify-center gap-2">
+                  {/* Left Label (Rotated) */}
+                  <div className="h-[500px] w-12 flex items-center justify-center">
+                      <span 
+                        className="text-2xl font-black text-slate-500 uppercase tracking-tight whitespace-nowrap transform -rotate-90"
+                      >
+                         שמאל כלכלי (Economic Left)
+                      </span>
+                  </div>
+
+                  {/* Chart */}
+                  <div className="w-[500px] h-[500px] border-[2px] border-[#475569] bg-white overflow-hidden relative">
+                      {ChartContent}
+                      <div className="absolute -bottom-6 -right-2 text-[12px] font-bold text-slate-600">
+                        ({safeCoords.x.toFixed(1)} , {safeCoords.y.toFixed(1)})
+                      </div>
+                  </div>
+
+                  {/* Right Label (Rotated) */}
+                  <div className="h-[500px] w-12 flex items-center justify-center">
+                      <span 
+                        className="text-2xl font-black text-slate-500 uppercase tracking-tight whitespace-nowrap transform rotate-90"
+                      >
+                         ימין כלכלי (Economic Right)
+                      </span>
+                  </div>
+              </div>
+
+               {/* Bottom Label */}
+               <div className="mt-2 text-center">
+                  <span className="text-2xl font-black text-slate-500 uppercase tracking-tight block">
+                    ליברלי (Libertarian)
+                  </span>
+              </div>
+          </div>
+      );
+  }
+
+  // Standard Responsive Layout for Web View
   return (
-    <div className={`w-full flex flex-col items-center ${isPrinting ? 'bg-transparent' : 'gap-6'}`}>
-      {!hideControls && !isPrinting && (
+    <div className="w-full flex flex-col items-center gap-6">
+      {!hideControls && (
         <div className="w-full flex justify-center">
           <div className="flex items-center gap-3 text-sm font-black bg-white/80 dark:bg-slate-800/80 px-6 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-xl backdrop-blur-md">
             <div className="w-4 h-4 rounded-full bg-red-600 ring-2 ring-white shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
@@ -99,46 +149,45 @@ const CompassChart: React.FC<CompassChartProps> = ({
         </div>
       )}
 
-      <div className={`relative ${isPrinting ? 'w-[500px] h-[500px]' : 'w-full max-w-[500px] aspect-square mx-auto'}`}>
-        {/* Mockup labels */}
-        <div className="absolute -top-8 left-0 right-0 text-center">
-            <span className={`font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`}>
-                {isPrinting ? 'סמכותני (Authoritarian)' : 'סמכותני'}
+      <div className="relative w-full max-w-[500px] aspect-square mx-auto">
+        {/* Top Label */}
+        <div className="absolute -top-12 left-0 right-0 text-center flex justify-center items-end">
+            <span className="font-black uppercase tracking-tight text-xs md:text-sm text-slate-800 dark:text-slate-100">
+                סמכותני
             </span>
         </div>
-        <div className="absolute -bottom-10 left-0 right-0 text-center">
-            <span className={`font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`}>
-                {isPrinting ? 'ליברלי (Libertarian)' : 'ליברלי'}
+        
+        {/* Bottom Label */}
+        <div className="absolute -bottom-12 left-0 right-0 text-center flex justify-center items-start">
+            <span className="font-black uppercase tracking-tight text-xs md:text-sm text-slate-800 dark:text-slate-100">
+                ליברלי
             </span>
         </div>
-        <div className="absolute top-0 bottom-0 -left-12 flex items-center">
-             <span className={`writing-mode-vertical rotate-180 font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`} style={{ writingMode: 'vertical-rl' }}>
-                 {isPrinting ? 'שמאל (Left)' : 'שמאל'}
-             </span>
-        </div>
-        <div className="absolute top-0 bottom-0 -right-12 flex items-center">
-             <span className={`writing-mode-vertical rotate-180 font-black uppercase tracking-tight ${isPrinting ? 'text-lg text-[#94a3b8]' : 'text-xs md:text-sm text-slate-800 dark:text-slate-100'}`} style={{ writingMode: 'vertical-rl' }}>
-                 {isPrinting ? 'ימין (Right)' : 'ימין'}
+
+        {/* Left Label */}
+        <div className="absolute top-0 bottom-0 -left-16 flex items-center justify-center">
+             <span 
+                className="font-black uppercase tracking-tight whitespace-nowrap text-xs md:text-sm text-slate-800 dark:text-slate-100" 
+                style={{ transform: 'rotate(-90deg)' }}
+             >
+                 שמאל כלכלי
              </span>
         </div>
 
-        {/* Coordinates in chart corner */}
-        {isPrinting && (
-           <div className="absolute -bottom-6 -right-2 text-[12px] font-bold text-slate-600">
-             ({safeCoords.x.toFixed(1)} , {safeCoords.y.toFixed(1)})
-           </div>
-        )}
+        {/* Right Label */}
+        <div className="absolute top-0 bottom-0 -right-16 flex items-center justify-center">
+             <span 
+                className="font-black uppercase tracking-tight whitespace-nowrap text-xs md:text-sm text-slate-800 dark:text-slate-100" 
+                style={{ transform: 'rotate(90deg)' }}
+             >
+                 ימין כלכלי
+             </span>
+        </div>
 
-        <div className={`absolute inset-0 border-[2px] ${isPrinting ? 'border-[#475569]' : 'border-slate-900 dark:border-slate-400 shadow-2xl'} bg-white overflow-hidden rounded-sm`}>
-            {isPrinting ? (
-              <div className="w-full h-full flex items-center justify-center">
-                 {ChartContent}
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                {ChartContent}
-              </ResponsiveContainer>
-            )}
+        <div className="absolute inset-0 border-[2px] border-slate-900 dark:border-slate-400 shadow-2xl bg-white overflow-hidden rounded-sm">
+            <ResponsiveContainer width="100%" height="100%">
+            {ChartContent}
+            </ResponsiveContainer>
         </div>
       </div>
     </div>
