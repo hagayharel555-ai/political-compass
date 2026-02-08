@@ -3,6 +3,7 @@ import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
 import ChannelPopup from './components/ChannelPopup';
 import AccessibilityMenu from './components/AccessibilityMenu';
+import TermsModal from './components/TermsModal';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
 import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isAccessible, setIsAccessible] = useState(false);
   const [showChannelPopup, setShowChannelPopup] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   // User Data State
   const [userName, setUserName] = useState("");
@@ -224,6 +226,7 @@ const App: React.FC = () => {
       dir="rtl"
     >
       {showChannelPopup && <ChannelPopup onClose={() => setShowChannelPopup(false)} />}
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
       
       {/* Floating Accessibility Widget */}
       <AccessibilityMenu 
@@ -371,6 +374,10 @@ const App: React.FC = () => {
                             <span>התחל מבחן</span>
                             <ArrowLeft className="w-5 h-5" />
                         </button>
+                        
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center px-2">
+                           לחיצה על הכפתור מהווה הסכמה <button onClick={() => setShowTerms(true)} className="underline decoration-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors">לתקנון ותנאי השימוש</button> באתר.
+                        </p>
                     </div>
                 </div>
             </div>
