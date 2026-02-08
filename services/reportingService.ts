@@ -1,4 +1,5 @@
 import { Coordinates, AnalysisResult, Answer } from "../types";
+import { QUESTIONS } from "../constants";
 
 interface AnalyticsData {
   duration: number;
@@ -35,11 +36,11 @@ const getQuadrantName = (x: number, y: number): string => {
 // Helper to get readable score text
 const getReadableScore = (score: number) => {
   switch (score) {
-    case 2: return "מסכים בהחלט (2)";
-    case 1: return "מסכים (1)";
-    case 0: return "ניטרלי (0)";
-    case -1: return "לא מסכים (-1)";
-    case -2: return "מתנגד בהחלט (-2)";
+    case 2: return "מסכים בהחלט";
+    case 1: return "מסכים";
+    case 0: return "ניטרלי";
+    case -1: return "לא מסכים";
+    case -2: return "מתנגד בהחלט";
     default: return `${score}`;
   }
 };
@@ -60,7 +61,11 @@ export const reportResult = async (coords: Coordinates, analysis: AnalysisResult
     const answersString = extraData?.answers
       ? [...extraData.answers]
           .sort((a, b) => a.questionId - b.questionId)
-          .map(a => `שאלה ${a.questionId}: ${getReadableScore(a.score)}`)
+          .map(a => {
+            const question = QUESTIONS.find(q => q.id === a.questionId);
+            const questionText = question ? question.text : `שאלה ${a.questionId}`;
+            return `${questionText}: ${getReadableScore(a.score)}`;
+          })
           .join('\n')
       : "";
 
