@@ -91,15 +91,15 @@ const ResultView: React.FC<ResultViewProps> = ({
     params.set('name', encodeURIComponent(nameForShare));
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-    const text = `התוצאה שלי במצפן הפוליטי: ${analysis.title}. בואו לגלות את שלכם:`;
+    const shareText = `התוצאה שלי במצפן הפוליטי: ${analysis.title}. בואו לגלות את שלכם:`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'המצפן הפוליטי', text: text, url: shareUrl });
+        await navigator.share({ title: 'המצפן הפוליטי', text: shareText, url: shareUrl });
       } catch (err) { console.log('Error sharing:', err); }
     } else {
       try {
-        await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) { console.error('Failed to copy:', err); }

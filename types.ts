@@ -1,16 +1,21 @@
-
 export enum Axis {
   ECONOMIC = 'economic',        // X-axis: -10 (Left) to +10 (Right)
   NATIONAL_SECURITY = 'national', // Y-axis: -10 (Dove) to +10 (Hawk)
-  SOCIAL_CULTURAL = 'social',    // Z-axis: -10 (Progressive) to +10 (Conservative)
-  CONSERVATISM = 'conservatism'  // Supplemental Z-axis questions
+  SOCIAL_CULTURAL = 'social',    // Legacy Z-axis (kept for compatibility)
+  CONSERVATISM = 'conservatism',  // Z-axis: Progressive vs Conservative
+  CIVIL_LIBERTY = 'civil_liberty' // New Axis: Libertarian vs Authoritarian
+}
+
+// ממשק חדש להגדרת השפעה (ציר + משקל)
+export interface Effect {
+  axis: Axis;
+  weight: number; 
 }
 
 export interface Question {
   id: number;
   text: string;
-  axis: Axis;
-  direction: 1 | -1; 
+  effects: Effect[]; // שינוי: רשימה של השפעות במקום axis/direction בודדים
 }
 
 export interface Answer {
@@ -21,7 +26,8 @@ export interface Answer {
 export interface Coordinates {
   x: number;
   y: number;
-  z: number; // Added Z axis for the social metric
+  z: number;
+  liberty: number; // הוספת ציר החירות לתוצאות
 }
 
 export interface AnalysisResult {
@@ -31,7 +37,8 @@ export interface AnalysisResult {
   economicAnalysis: string;
   nationalAnalysis: string;
   religiousAnalysis: string;
-  socialAnalysis?: string; // Analysis for the new axis
+  socialAnalysis?: string;
+  libertyAnalysis?: string; // הוספת מקום לניתוח חירות
 }
 
 export interface SavedResult {

@@ -48,8 +48,8 @@ const getReadableScore = (score: number) => {
 // Helper to get formatted score with number for the long-format sheet
 // Example: "מסכים (2)"
 const getScoreWithNumber = (score: number) => {
-  const text = getReadableScore(score);
-  return `${text} (${score})`;
+  const scoreText = getReadableScore(score);
+  return `${scoreText} (${score})`;
 };
 
 export const reportResult = async (coords: Coordinates, analysis: AnalysisResult, extraData?: AnalyticsData) => {

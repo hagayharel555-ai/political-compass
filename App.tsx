@@ -6,7 +6,7 @@ import AccessibilityMenu from './components/AccessibilityMenu';
 import TermsModal from './components/TermsModal';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
-import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
+import { Compass, History, BrainCircuit, Sun, Moon, User, Mail, ArrowLeft } from 'lucide-react';
 import { getSavedResult, saveResult, hasSavedResult, getSavedUserDetails } from './utils/storage';
 
 enum AppState {
@@ -18,7 +18,8 @@ enum AppState {
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
-  const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0, z: 0 });
+  // שינוי: הוספת liberty לאתחול
+  const [coordinates, setCoordinates] = useState<Coordinates>({ x: 0, y: 0, z: 0, liberty: 0 });
   const [friendCoordinates, setFriendCoordinates] = useState<Coordinates | null>(null);
   const [friendName, setFriendName] = useState<string>("");
 
@@ -52,14 +53,16 @@ const App: React.FC = () => {
     const xParam = params.get('x');
     const yParam = params.get('y');
     const zParam = params.get('z');
+    const libertyParam = params.get('liberty'); // תמיכה בקריאת חירות מ-URL
 
     if (xParam && yParam) {
       const x = parseFloat(xParam);
       const y = parseFloat(yParam);
       const z = zParam ? parseFloat(zParam) : 0;
+      const liberty = libertyParam ? parseFloat(libertyParam) : 0;
 
       if (!isNaN(x) && !isNaN(y)) {
-        const coords = { x, y, z };
+        const coords = { x, y, z, liberty };
         setFriendCoordinates(coords);
         setCoordinates(coords);
         
@@ -98,54 +101,69 @@ const App: React.FC = () => {
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const toggleAccessibility = () => setIsAccessible(!isAccessible);
 
+  // --- לוגיקת החישוב החדשה ---
   const calculateResults = (answers: Answer[]) => {
     try {
       const durationSec = (Date.now() - startTime) / 1000;
       setQuizDuration(durationSec);
       setLastAnswers(answers);
 
-      let econScore = 0;
-      let nationalScore = 0;
-      let socialScore = 0;
-      
-      const econQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.ECONOMIC).length || 1;
-      const nationalQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.NATIONAL_SECURITY).length || 1;
-      // Z-axis aggregates both Social/Cultural and Conservatism questions
-      const socialQuestionsCount = QUESTIONS.filter(q => q.axis === Axis.SOCIAL_CULTURAL || q.axis === Axis.CONSERVATISM).length || 1;
+      // 1. אתחול מונים לניקוד ולמקסימום אפשרי
+      const scores = {
+        [Axis.ECONOMIC]: 0,
+        [Axis.NATIONAL_SECURITY]: 0,
+        [Axis.CONSERVATISM]: 0,
+        [Axis.CIVIL_LIBERTY]: 0,
+        [Axis.SOCIAL_CULTURAL]: 0
+      };
 
+      const maxPossibleScores = {
+        [Axis.ECONOMIC]: 0,
+        [Axis.NATIONAL_SECURITY]: 0,
+        [Axis.CONSERVATISM]: 0,
+        [Axis.CIVIL_LIBERTY]: 0,
+        [Axis.SOCIAL_CULTURAL]: 0
+      };
+
+      // 2. חישוב המקסימום האפשרי לכל ציר (לצורך נרמול)
+      QUESTIONS.forEach(q => {
+        q.effects.forEach(effect => {
+            // בהנחה שהתשובה המקסימלית היא 2 (מסכים בהחלט)
+            maxPossibleScores[effect.axis] += Math.abs(effect.weight * 2);
+        });
+      });
+
+      // 3. סיכום תשובות המשתמש
       answers.forEach(ans => {
         const question = QUESTIONS.find(q => q.id === ans.questionId);
         if (!question) return;
 
-        const score = Number(ans.score);
-        const direction = Number(question.direction);
-        
-        if (isNaN(score) || isNaN(direction)) return;
+        const userScore = Number(ans.score);
+        if (isNaN(userScore)) return;
 
-        const impact = score * direction;
-
-        if (question.axis === Axis.ECONOMIC) {
-          econScore += impact;
-        } else if (question.axis === Axis.NATIONAL_SECURITY) {
-          nationalScore += impact;
-        } else if (question.axis === Axis.SOCIAL_CULTURAL || question.axis === Axis.CONSERVATISM) {
-          socialScore += impact;
-        }
+        question.effects.forEach(effect => {
+          scores[effect.axis] += userScore * effect.weight;
+        });
       });
 
-      const normalizedX = (econScore / (2 * econQuestionsCount)) * 10;
-      const normalizedY = (nationalScore / (2 * nationalQuestionsCount)) * 10;
-      const normalizedZ = (socialScore / (2 * socialQuestionsCount)) * 10;
+      // 4. נרמול התוצאות לטווח -10 עד 10
+      const normalize = (axis: Axis) => {
+        const max = maxPossibleScores[axis];
+        if (max === 0) return 0;
+        const raw = scores[axis];
+        // חישוב יחסי ואז הכפלה ב-10
+        return (raw / max) * 10;
+      };
 
-      const safeX = Math.max(-10, Math.min(10, normalizedX || 0));
-      const safeY = Math.max(-10, Math.min(10, normalizedY || 0));
-      const safeZ = Math.max(-10, Math.min(10, normalizedZ || 0));
+      const safeX = Math.max(-10, Math.min(10, normalize(Axis.ECONOMIC)));
+      const safeY = Math.max(-10, Math.min(10, normalize(Axis.NATIONAL_SECURITY)));
+      const safeZ = Math.max(-10, Math.min(10, normalize(Axis.CONSERVATISM)));
+      const safeLiberty = Math.max(-10, Math.min(10, normalize(Axis.CIVIL_LIBERTY)));
 
-      setCoordinates({ x: safeX, y: safeY, z: safeZ });
+      setCoordinates({ x: safeX, y: safeY, z: safeZ, liberty: safeLiberty });
       setCurrentAnalysis(null);
       setAppState(AppState.RESULTS);
       
-      // Trigger Channel Popup after results are calculated
       setTimeout(() => setShowChannelPopup(true), 2500);
 
       try {
@@ -173,7 +191,11 @@ const App: React.FC = () => {
   const handleLoadHistory = () => {
     const saved = getSavedResult();
     if (saved) {
-      setCoordinates(saved.coordinates);
+      // טעינת היסטוריה עם תמיכה לאחור (אם אין liberty, נשתמש ב-0)
+      setCoordinates({
+          ...saved.coordinates,
+          liberty: saved.coordinates.liberty || 0
+      });
       setCurrentAnalysis(saved.analysis);
       setFriendCoordinates(null);
       setFriendName("");
@@ -206,7 +228,7 @@ const App: React.FC = () => {
     }
     
     setAppState(AppState.WELCOME);
-    setCoordinates({ x: 0, y: 0, z: 0 });
+    setCoordinates({ x: 0, y: 0, z: 0, liberty: 0 });
     setFriendCoordinates(null);
     setFriendName("");
     setCurrentAnalysis(null);
@@ -214,11 +236,6 @@ const App: React.FC = () => {
     setLastAnswers([]);
     setValidationError(false);
   };
-
-  const isViewingFriendResult = appState === AppState.RESULTS && 
-                                friendCoordinates !== null && 
-                                coordinates.x === friendCoordinates.x && 
-                                coordinates.y === friendCoordinates.y;
 
   return (
     <div 
@@ -228,7 +245,6 @@ const App: React.FC = () => {
       {showChannelPopup && <ChannelPopup onClose={() => setShowChannelPopup(false)} />}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
       
-      {/* Floating Accessibility Widget */}
       <AccessibilityMenu 
         isHighContrast={isAccessible} 
         toggleHighContrast={toggleAccessibility}
