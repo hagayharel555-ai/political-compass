@@ -2,7 +2,6 @@ import { Question, Axis } from './types';
 
 export const QUESTIONS: Question[] = [
   // --- Economic Axis (X) ---
-  // נשאר ללא שינוי מהותי, רק המרה לפורמט החדש
   { 
     id: 1, 
     text: "הממשלה צריכה להגדיל את תקציבי הרווחה והחינוך, גם אם זה דורש העלאת מיסים.", 
@@ -199,9 +198,8 @@ export const QUESTIONS: Question[] = [
     text: "יש לאסור על עמותות המקבלות מימון זר להתערב בתהליכים פוליטיים בישראל.", 
     effects: [
       { axis: Axis.NATIONAL_SECURITY, weight: 1 },
-      { axis: Axis.CIVIL_LIBERTY, weight: -0.5 }
+      { axis: Axis.CIVIL_LIBERTY, weight: -0.5 },
       { axis: Axis.ECONOMIC, weight: 1 }
-
     ] 
   },
   { 
@@ -239,7 +237,7 @@ export const QUESTIONS: Question[] = [
     id: 60, 
     text: "יש לתקן את חוק השבות כך שיתייחס רק ליהודים על פי ההלכה (ביטול סעיף הנכד).", 
     effects: [
-      { axis: Axis.CONSERVATISM, weight: 1.5 }
+      { axis: Axis.CONSERVATISM, weight: 1.5 },
       { axis: Axis.CIVIL_LIBERTY, weight: -1 }
     ] 
   },

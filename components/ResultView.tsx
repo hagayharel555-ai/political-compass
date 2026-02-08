@@ -4,7 +4,7 @@ import CompassChart from './CompassChart';
 import ConservatismMeter from './ConservatismMeter';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
-import { RefreshCw, Share2, Check, Download, Compass, Wallet, Shield, ScrollText, RotateCcw, Youtube } from 'lucide-react';
+import { RefreshCw, Share2, Check, Download, Compass, Wallet, Shield, ScrollText, RotateCcw } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ResultViewProps {

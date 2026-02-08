@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Question, Answer } from '../types';
 import { QUESTIONS } from '../constants';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, X, Minus } from 'lucide-react';
+import { Check, ChevronRight, X, Minus } from 'lucide-react';
 
 interface QuizProps {
   onComplete: (answers: Answer[]) => void;
