@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Quiz from './components/Quiz';
 import ResultView from './components/ResultView';
 import ChannelPopup from './components/ChannelPopup';
+import AccessibilityMenu from './components/AccessibilityMenu';
 import { Answer, Coordinates, AnalysisResult, Axis } from './types';
 import { QUESTIONS } from './constants';
 import { Compass, History, BrainCircuit, HeartHandshake, Moon, Sun, User, Mail, ArrowLeft, Accessibility, Users } from 'lucide-react';
@@ -223,6 +224,14 @@ const App: React.FC = () => {
       dir="rtl"
     >
       {showChannelPopup && <ChannelPopup onClose={() => setShowChannelPopup(false)} />}
+      
+      {/* Floating Accessibility Widget */}
+      <AccessibilityMenu 
+        isHighContrast={isAccessible} 
+        toggleHighContrast={toggleAccessibility}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+      />
 
       {/* Header */}
       <header className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 glass transition-colors duration-300">
@@ -242,23 +251,13 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
-             <button
-               onClick={toggleAccessibility}
-               className={`p-2 rounded-full transition-colors ${
-                 isAccessible 
-                   ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-400' 
-                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-               }`}
-             >
-               <Accessibility className="w-5 h-5" />
-             </button>
-
-             <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-             >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-             </button>
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400"
+              aria-label={isDarkMode ? "החלף למצב יום" : "החלף למצב לילה"}
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">
                 <span>פותח ע"י חגי</span>
@@ -379,7 +378,7 @@ const App: React.FC = () => {
 
             {appState === AppState.QUIZ && (
             <div className="animate-fadeIn">
-                <Quiz onComplete={calculateResults} />
+                <Quiz onComplete={calculateResults} isAccessible={isAccessible} />
             </div>
             )}
 

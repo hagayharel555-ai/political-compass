@@ -38,7 +38,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Rubik', sans-serif; }
+      body { font-family: 'Rubik', sans-serif; transition: font-size 0.2s; }
       .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
       ::-webkit-scrollbar { width: 8px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -47,6 +47,37 @@
       
       /* Essential for chart rendering */
       .recharts-responsive-container { min-width: 100px; min-height: 100px; }
+
+      /* Accessible Mode Styles (High Contrast Logic) */
+      .accessible-mode * {
+        /* We handle animations separately via class now, but keeping this for legacy high-contrast mode compatibility */
+      }
+      .accessible-mode .glass {
+        backdrop-filter: none;
+        background-color: #ffffff;
+      }
+      .dark .accessible-mode .glass {
+        background-color: #0f172a;
+      }
+
+      /* Global Accessibility Utility Classes */
+      body.acc-grayscale { filter: grayscale(100%); }
+      
+      body.acc-readable-font { font-family: Arial, Helvetica, sans-serif !important; }
+      body.acc-readable-font * { font-family: Arial, Helvetica, sans-serif !important; }
+
+      body.acc-highlight-links a, 
+      body.acc-highlight-links button { 
+        text-decoration: underline !important; 
+        outline: 2px solid yellow !important;
+      }
+      
+      body.acc-no-animations *, 
+      body.acc-no-animations { 
+        animation: none !important; 
+        transition: none !important; 
+        transform: none !important;
+      }
     </style>
     <script type="importmap">
 {

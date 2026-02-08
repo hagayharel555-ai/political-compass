@@ -5,9 +5,11 @@ import { ArrowLeft, ArrowRight, Check, ChevronRight, X, Minus } from 'lucide-rea
 
 interface QuizProps {
   onComplete: (answers: Answer[]) => void;
+  // Fix: Add isAccessible optional prop to interface
+  isAccessible?: boolean;
 }
 
-const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
+const Quiz: React.FC<QuizProps> = ({ onComplete, isAccessible = false }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
