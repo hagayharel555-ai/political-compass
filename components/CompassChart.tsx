@@ -25,7 +25,9 @@ const CompassChart: React.FC<CompassChartProps> = ({
 }) => {
   const safeCoords = {
     x: Number.isNaN(Number(coordinates.x)) ? 0 : Number(coordinates.x),
-    y: Number.isNaN(Number(coordinates.y)) ? 0 : Number(coordinates.y),
+    // Flip signs: internal positive liberty = libertarian (bottom), 
+    // chart positive y = authoritarian (top).
+    y: Number.isNaN(Number(coordinates.liberty)) ? 0 : -Number(coordinates.liberty),
     z: Number.isNaN(Number(coordinates.z)) ? 0 : Number(coordinates.z)
   };
 
@@ -33,7 +35,7 @@ const CompassChart: React.FC<CompassChartProps> = ({
   
   const compareData = compareCoordinates ? [{ 
     x: Number.isNaN(Number(compareCoordinates.x)) ? 0 : Number(compareCoordinates.x), 
-    y: Number.isNaN(Number(compareCoordinates.y)) ? 0 : Number(compareCoordinates.y), 
+    y: Number.isNaN(Number(compareCoordinates.liberty)) ? 0 : -Number(compareCoordinates.liberty), 
     name: friendName || "חבר" 
   }] : [];
 

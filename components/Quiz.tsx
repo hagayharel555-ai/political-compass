@@ -9,7 +9,7 @@ interface QuizProps {
   isAccessible?: boolean;
 }
 
-const Quiz: React.FC<QuizProps> = ({ onComplete, isAccessible = false }) => {
+const Quiz: React.FC<QuizProps> = ({ onComplete }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);

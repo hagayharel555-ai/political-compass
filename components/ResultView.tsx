@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Coordinates, AnalysisResult, Answer } from '../types';
 import CompassChart from './CompassChart';
 import ConservatismMeter from './ConservatismMeter';
+import SecurityMeter from './SecurityMeter';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
 import { RefreshCw, Share2, Check, Download, Compass, Wallet, Shield, ScrollText, RotateCcw } from 'lucide-react';
@@ -86,6 +87,7 @@ const ResultView: React.FC<ResultViewProps> = ({
     params.set('x', coordinates.x.toString());
     params.set('y', coordinates.y.toString());
     params.set('z', coordinates.z.toString());
+    params.set('liberty', (coordinates.liberty || 0).toString());
     params.set('title', encodeURIComponent(analysis.title));
     params.set('desc', encodeURIComponent(analysis.description));
     params.set('name', encodeURIComponent(nameForShare));
@@ -199,6 +201,7 @@ const ResultView: React.FC<ResultViewProps> = ({
           {/* Chart Section */}
           <div className="w-full flex flex-col items-center justify-center scale-[1.0] mb-20 mt-4">
             <CompassChart coordinates={coordinates} isPrinting={true} hideControls={true} />
+            <SecurityMeter score={coordinates.y} isPrinting={true} />
             <ConservatismMeter score={coordinates.z} isPrinting={true} />
           </div>
 
@@ -273,6 +276,7 @@ const ResultView: React.FC<ResultViewProps> = ({
                 isDarkMode={isDarkMode}
                 isAccessible={isAccessible}
               />
+              <SecurityMeter score={coordinates.y} />
               <ConservatismMeter score={coordinates.z} />
             </div>
 

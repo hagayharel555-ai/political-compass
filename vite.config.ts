@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, (process as any).cwd(), '');
@@ -12,7 +13,10 @@ export default defineConfig(({ mode }) => {
   const LONG_FORMAT_REPORTING_URL = "https://script.google.com/macros/s/AKfycbwz8VLmcyRFbOw0-8dUNGwwRfPMW9U1pQ8W2CN-tHTyFlFxinw_lhkirD5XylwbBPgS/exec"; 
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      tailwindcss(),
+    ],
     define: {
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
       // Use the env var if it exists, otherwise use the hardcoded URL provided by the user

@@ -81,7 +81,8 @@ const App: React.FC = () => {
             ideology: '',
             economicAnalysis: '',
             nationalAnalysis: '',
-            religiousAnalysis: ''
+            religiousAnalysis: '',
+            libertyAnalysis: ''
           });
         }
         

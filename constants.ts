@@ -275,7 +275,7 @@ export const QUESTIONS: Question[] = [
 
   { 
     id: 64, 
-    text: "המדינה צריכה להכיר בזוגיות גאה באופן מלא, כולל הזכות לאמץ ילדים והליכי פונדקאות.", 
+    text: "המדינה צריכה להכיר בזוגיות גאה באופן מלא, כולל הזכות לאמץ ילדים.", 
     effects: [
       { axis: Axis.CONSERVATISM, weight: 0 },
       { axis: Axis.CIVIL_LIBERTY, weight: 1.5 }
