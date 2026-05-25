@@ -6,7 +6,7 @@ import SecurityMeter from './SecurityMeter';
 import { analyzeResults } from '../services/geminiService';
 import { reportResult } from '../services/reportingService';
 import { RefreshCw, Share2, Check, Download, Compass, Wallet, Shield, ScrollText, RotateCcw } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 interface ResultViewProps {
   coordinates: Coordinates;
@@ -115,25 +115,19 @@ const ResultView: React.FC<ResultViewProps> = ({
     try {
       await new Promise(r => setTimeout(r, 800));
       
-      const canvas = await html2canvas(downloadContainerRef.current, {
+      const dataUrl = await toPng(downloadContainerRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, 
-        useCORS: true,
-        logging: false,
+        pixelRatio: 2, 
         width: 1000,
-        height: 1750, // Increased height to accommodate the conservatism meter
-        onclone: (clonedDoc) => {
-            // Ensure fonts are loaded in the clone
-            const element = clonedDoc.querySelector('[data-download-container]') as HTMLElement;
-            if (element) {
-                element.style.fontFamily = "'Rubik', sans-serif";
-            }
+        height: 2000,
+        style: {
+          fontFamily: "'Rubik', sans-serif"
         }
       });
       
       const link = document.createElement('a');
       link.download = `political-compass-${userName || 'result'}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error('Download failed:', err);
@@ -170,7 +164,7 @@ const ResultView: React.FC<ResultViewProps> = ({
         <div 
           ref={downloadContainerRef}
           data-download-container
-          className="w-[1000px] h-[1750px] bg-white p-20 flex flex-col items-center border-[20px] border-slate-900 rounded-[60px] relative"
+          className="w-[1000px] h-[2000px] bg-white p-20 flex flex-col items-center border-[20px] border-slate-900 rounded-[60px] relative"
           style={{ fontFamily: 'Rubik, sans-serif' }}
           dir="ltr" 
         >
@@ -214,22 +208,27 @@ const ResultView: React.FC<ResultViewProps> = ({
                {analysis?.description}
              </p>
 
-             {/* Three Columns Analysis - Order reversed for visual RTL in LTR container */}
-             <div className="grid grid-cols-3 gap-10 text-right">
-                {/* Column 3 (Left physically) -> Religious */}
+             {/* Four Columns Analysis - Order arranged for visual RTL in LTR container */}
+             <div className="grid grid-cols-2 gap-10 text-right">
+                {/* Visual Left Top -> Religious */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">דת ומדינה</span>
                     <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.religiousAnalysis}</p>
                 </div>
-                {/* Column 2 (Center) -> Security */}
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
-                    <span className="text-[32px] font-black text-slate-900 mb-4">ביטחון</span>
-                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.nationalAnalysis}</p>
-                </div>
-                {/* Column 1 (Right physically) -> Economy */}
+                {/* Visual Right Top -> Economy */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
                     <span className="text-[32px] font-black text-slate-900 mb-4">כלכלה</span>
                     <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.economicAnalysis}</p>
+                </div>
+                {/* Visual Left Bottom -> Liberty */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
+                    <span className="text-[32px] font-black text-slate-900 mb-4">חירות וסמכות</span>
+                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.libertyAnalysis || "מאמין באיזון בין חירות אישית לסמכות שלטונית."}</p>
+                </div>
+                {/* Visual Right Bottom -> Security */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center">
+                    <span className="text-[32px] font-black text-slate-900 mb-4">ביטחון</span>
+                    <p className="text-[20px] text-slate-500 font-medium text-center" style={{ direction: 'rtl' }}>{analysis?.nationalAnalysis}</p>
                 </div>
              </div>
           </div>
@@ -300,6 +299,13 @@ const ResultView: React.FC<ResultViewProps> = ({
                 <div>
                   <h4 className="font-black text-slate-900 dark:text-white mb-1">שמרנות ודת</h4>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm md:text-base">{analysis?.religiousAnalysis}</p>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex gap-4">
+                <div className="bg-orange-100 dark:bg-orange-900/30 p-3 h-fit rounded-xl"><Compass className="w-6 h-6 text-orange-600 dark:text-orange-400" /></div>
+                <div>
+                  <h4 className="font-black text-slate-900 dark:text-white mb-1">חירות וסמכות</h4>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm md:text-base">{analysis?.libertyAnalysis || "מאמין באיזון בין חירות אישית לסמכות שלטונית."}</p>
                 </div>
               </div>
             </div>
